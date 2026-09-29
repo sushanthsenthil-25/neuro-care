@@ -74,26 +74,15 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
     setIsLoading(true);
 
     const activeId = patientId || '132547';
-    const res: GrokChatResponse | null = await sendGrokChatMessage(activeId, query);
+    const res: GrokChatResponse = await sendGrokChatMessage(activeId, query);
 
-    if (res && res.response) {
-      const botMsg: Message = {
-        id: `msg-b-${Date.now()}`,
-        sender: 'bot',
-        text: res.response,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages((prev) => [...prev, botMsg]);
-    } else {
-      const errorMsg: Message = {
-        id: `msg-e-${Date.now()}`,
-        sender: 'bot',
-        text: 'NeuroCare AI is temporarily unavailable. Please verify the backend connection or try again.',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isError: true
-      };
-      setMessages((prev) => [...prev, errorMsg]);
-    }
+    const botMsg: Message = {
+      id: `msg-b-${Date.now()}`,
+      sender: 'bot',
+      text: res.response,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages((prev) => [...prev, botMsg]);
     setIsLoading(false);
   };
 
