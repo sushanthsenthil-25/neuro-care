@@ -1,0 +1,19 @@
+{
+  "model_name": "NeuroCare Calibrated XGBoost ICU Predictor",
+  "version": "NeuroCare-Competition-v2.0",
+  "target": "inHospitalDeath",
+  "target_interpretation": "Predicted In-Hospital Mortality Risk Probability P(inHospitalDeath=1)",
+  "feature_count": 533,
+  "n_train_patients": 2720,
+  "n_holdout_test_patients": 480,
+  "cv_oof_auroc": 0.8454,
+  "cv_oof_auprc": 0.4856,
+  "holdout_test_auroc": 0.8192,
+  "holdout_test_auprc": 0.4572,
+  "holdout_test_brier_score": 0.0992,
+  "holdout_test_log_loss": 0.3341,
+  "multi_seed_auroc_mean": 0.8494,
+  "multi_seed_auroc_std": 0.0045,
+  "batch_inference_time_ms": 209.52,
+  "per_patient_inference_time_ms": 0.44
+}
