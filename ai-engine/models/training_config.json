@@ -1,0 +1,10 @@
+{
+  "random_seed": 42,
+  "n_splits": 5,
+  "scale_pos_weight": 6.214853946555599,
+  "ensemble_weights": {
+    "XGBoost": 0.45,
+    "LightGBM": 0.45,
+    "HistGB": 0.1
+  }
+}
