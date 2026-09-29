@@ -31,4 +31,5 @@ __pycache__/
 .pytest_cache/
 scratch/
 *.parquet
+ai-engine/models/*.joblib
 
