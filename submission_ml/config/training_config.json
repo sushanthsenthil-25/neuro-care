@@ -1,0 +1,10 @@
+{
+  "random_seed": 42,
+  "cv_strategy": "5-Fold Patient-Stratified Cross Validation",
+  "base_model": "Calibrated XGBoost Classifier",
+  "cv_oof_auroc": 0.8454,
+  "cv_oof_auprc": 0.4856,
+  "holdout_test_auroc": 0.8192,
+  "holdout_test_auprc": 0.4572,
+  "holdout_test_brier": 0.0992
+}
