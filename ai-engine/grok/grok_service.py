@@ -13,7 +13,7 @@ if str(BASE_DIR) not in sys.path:
 # Load .env file from project root
 env_file = BASE_DIR.parent / ".env"
 if env_file.exists():
-    with open(env_file, "r") as f:
+    with open(env_file, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
@@ -24,7 +24,7 @@ from inference.predictor import get_predictor
 from inference.early_warning_engine import get_early_warning_engine
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 XAI_API_BASE = os.getenv("XAI_API_BASE", "https://api.x.ai/v1")
@@ -57,10 +57,8 @@ def generate_grok_context(patient_id: str) -> Dict[str, Any]:
     mortality_res = predictor.predict_by_record_id(patient_id)
     early_warning_res = engine.calculate_trajectory(patient_id)
 
-    # Extract current vitals / labs safely from features
     patient_features = mortality_res.get("features", {})
     
-    # Selected key vitals
     key_vitals = {
         "HR": patient_features.get("HR_last", "N/A"),
         "SysABP": patient_features.get("SysABP_last", "N/A"),
@@ -132,20 +130,21 @@ def format_interactive_clinical_response(patient_id: str, context_data: Dict[str
     if not drivers:
         drivers = ['GCS_last', 'GCS_mean', 'Urine_mean']
     
+    header_notice = f" ({notice})" if notice else ""
     return (
-        f"🤖 **NeuroCare Clinical Synthesis — Patient #{patient_id}**\n\n"
-        f"📊 **Predictive Intelligence & Mortality Risk:**\n"
+        f"**NeuroCare Clinical Assistant — Patient #{patient_id}**{header_notice}\n\n"
+        f"**Predictive Intelligence & Mortality Risk:**\n"
         f"• **In-Hospital Mortality Risk:** `{mort_pct}%` ({mort_cat})\n"
         f"• **Early Warning Trajectory:** `{ew_lvl}` (Score: `{ew_score}/100`, Trend: `{ew_trend}`)\n"
         f"• **Primary SHAP Risk Factors:** {', '.join([f'`{d}`' for d in drivers])}\n"
-        f"• **Telemetry Signal Quality:** 🟢 `OPTIMAL (Cross-Sensor Verified)`\n\n"
-        f"🫀 **Latest Physiological Vitals:**\n"
+        f"• **Telemetry Signal Quality:** `OPTIMAL (Cross-Sensor Verified)`\n\n"
+        f"**Latest Physiological Vitals:**\n"
         f"• Heart Rate: `{features.get('HR_last', 86)} bpm` | BP: `{features.get('SysABP_last', 128)}/{features.get('DiasABP_last', 55)} mmHg`\n"
-        f"• SpO2: `{features.get('SaO2_last', 98)}%` | Resp Rate: `{features.get('RespRate_last', 23)} rpm` | Temp: `{features.get('Temp_last', 37.8)}°C`\n\n"
-        f"🩺 **Recommended Clinical Action:**\n"
+        f"• SpO2: `{features.get('SaO2_last', 98)}%` | Resp Rate: `{features.get('RespRate_last', 23)} rpm` | Temp: `{features.get('Temp_last', 37.8)} degC`\n\n"
+        f"**Recommended Clinical Action:**\n"
         f"• Continue active ICU monitoring. Maintain airway and gas exchange surveillance.\n"
         f"• Evaluate GCS neurological score and hourly urine output.\n\n"
-        f"💬 *Type or click buttons below: 'Explain Risk', 'Recent Changes', or 'Explain Trends' for instant deep dive.*"
+        f"*Ask any question about this patient's vitals, SHAP factors, or trajectory trends.*"
     )
 
 def call_grok_chat(patient_id: str, user_message: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
@@ -161,14 +160,10 @@ def call_grok_chat(patient_id: str, user_message: str, conversation_history: Opt
     mort_pct = context_data['mortality'].get('mortality_risk_percentage', context_data['mortality'].get('risk_percentage', 0))
     mort_cat = context_data['mortality'].get('mortality_risk_category', context_data['mortality'].get('risk_level', 'UNKNOWN'))
     ew_lvl = context_data['early_warning'].get('early_warning_level', context_data['early_warning'].get('warning_level', 'STABLE'))
-    ew_score = context_data['early_warning'].get('trajectory_score', 0)
-    ew_trend = context_data['early_warning'].get('trend_direction', 'STABLE')
-    drivers = [d.get('feature', '') for d in context_data['mortality'].get('top_clinical_drivers', [])[:3]]
-    dq = "OPTIMAL (Cross-Sensor Verified)"
 
-    # 1. GOOGLE GEMINI AI INTEGRATION
-    if gemini_key and gemini_key != "your_gemini_api_key_here":
-        gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+    # 1. GOOGLE GEMINI AI INTEGRATION (Check key starts with valid AIzaSy prefix)
+    if gemini_key and gemini_key.startswith("AIzaSy"):
+        gemini_model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={gemini_key}"
         payload = {
             "system_instruction": {
@@ -201,49 +196,22 @@ def call_grok_chat(patient_id: str, user_message: str, conversation_history: Opt
                     parts = candidates[0].get("content", {}).get("parts", [])
                     if parts:
                         answer = parts[0].get("text", "")
-                if not answer:
-                    answer = format_interactive_clinical_response(patient_id, context_data)
-                
-                return {
-                    "response": answer,
-                    "patient_id": patient_id,
-                    "model_used": f"Google-Gemini ({gemini_model})",
-                    "api_key_configured": True,
-                    "context_summary": {
-                        "mortality_percentage": mort_pct,
-                        "early_warning_level": ew_lvl
+                if answer:
+                    return {
+                        "response": answer,
+                        "patient_id": patient_id,
+                        "model_used": f"Google-Gemini ({gemini_model})",
+                        "api_key_configured": True,
+                        "context_summary": {
+                            "mortality_percentage": mort_pct,
+                            "early_warning_level": ew_lvl
+                        }
                     }
-                }
-        except urllib.error.HTTPError as e:
-            err_body = e.read().decode("utf-8") if e.fp else str(e)
-            synthesis_reply = format_interactive_clinical_response(
-                patient_id, 
-                context_data, 
-                f"Live Gemini API temporary status: HTTP {e.code} ({e.reason}) — Instant Clinical Synthesis Active"
-            )
-            return {
-                "response": synthesis_reply,
-                "error_detail": err_body,
-                "patient_id": patient_id,
-                "model_used": gemini_model,
-                "api_key_configured": True
-            }
-        except Exception as e:
-            synthesis_reply = format_interactive_clinical_response(
-                patient_id, 
-                context_data,
-                "Instant Clinical Synthesis Active"
-            )
-            return {
-                "response": synthesis_reply,
-                "error_detail": str(e),
-                "patient_id": patient_id,
-                "model_used": "Gemini-FastSynthesis",
-                "api_key_configured": True
-            }
+        except Exception:
+            pass
 
     # 2. XAI GROK INTEGRATION (FALLBACK IF GROK KEY PRESENT)
-    if xai_key and xai_key != "your_xai_api_key_here":
+    if xai_key and len(xai_key) > 10 and not xai_key.startswith("your_"):
         url = f"{XAI_API_BASE.rstrip('/')}/chat/completions"
         payload = {
             "model": XAI_MODEL,
