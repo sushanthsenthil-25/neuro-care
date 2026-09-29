@@ -1,0 +1,38 @@
+{
+  "XGBoost": {
+    "auroc": 0.7951983604157518,
+    "auprc": 0.43281521725215055,
+    "accuracy": 0.7166666666666667,
+    "sensitivity_recall": 0.7272727272727273,
+    "specificity": 0.7149758281406805,
+    "precision": 0.2891566265060241,
+    "f1_score": 0.41379310344827586,
+    "log_loss": 0.3480852544307709,
+    "brier_score": 0.10778221487998962,
+    "optimal_threshold": 0.12000000000000001,
+    "confusion_matrix": {
+      "true_negative": 296,
+      "false_positive": 118,
+      "false_negative": 18,
+      "true_positive": 48
+    }
+  },
+  "LightGBM": {
+    "auroc": 0.7976870150783194,
+    "auprc": 0.4690116291807645,
+    "accuracy": 0.7270833333333333,
+    "sensitivity_recall": 0.7272727272727273,
+    "specificity": 0.7270531225349488,
+    "precision": 0.2981366459627329,
+    "f1_score": 0.42290748898678415,
+    "log_loss": 0.344179796529878,
+    "brier_score": 0.10545990436143657,
+    "optimal_threshold": 0.16,
+    "confusion_matrix": {
+      "true_negative": 301,
+      "false_positive": 113,
+      "false_negative": 18,
+      "true_positive": 48
+    }
+  }
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "feature": "GCS_last",
+    "importance": 0.514711320400238
+  },
+  {
+    "feature": "GCS_mean",
+    "importance": 0.25614315271377563
+  },
+  {
+    "feature": "Age",
+    "importance": 0.21544164419174194
+  },
+  {
+    "feature": "BUN_last",
+    "importance": 0.18676474690437317
+  },
+  {
+    "feature": "GCS_slope",
+    "importance": 0.14987511932849884
+  },
+  {
+    "feature": "Urine_mean",
+    "importance": 0.14106471836566925
+  },
+  {
+    "feature": "Temp_last",
+    "importance": 0.12590473890304565
+  },
+  {
+    "feature": "Temp_min",
+    "importance": 0.1212877705693245
+  },
+  {
+    "feature": "Urine_count",
+    "importance": 0.11693689227104187
+  },
+  {
+    "feature": "Na_slope",
+    "importance": 0.110990509390831
+  },
+  {
+    "feature": "BUN_min",
+    "importance": 0.09949319809675217
+  },
+  {
+    "feature": "RespRate_mean",
+    "importance": 0.09722314029932022
+  },
+  {
+    "feature": "HCO3_slope",
+    "importance": 0.09488577395677567
+  },
+  {
+    "feature": "Weight",
+    "importance": 0.09425314515829086
+  },
+  {
+    "feature": "PaO2_slope",
+    "importance": 0.08910004049539566
+  },
+  {
+    "feature": "FiO2_slope",
+    "importance": 0.08623762428760529
+  },
+  {
+    "feature": "Urine_slope",
+    "importance": 0.08572711795568466
+  },
+  {
+    "feature": "GCS_count",
+    "importance": 0.08266568928956985
+  },
+  {
+    "feature": "Temp_mean",
+    "importance": 0.08010552823543549
+  },
+  {
+    "feature": "HR_last",
+    "importance": 0.07992112636566162
+  }
+]

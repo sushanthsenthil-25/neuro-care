@@ -1,0 +1,193 @@
+{
+  "dataset_name": "PhysioNet ICU Challenge Dataset 2",
+  "total_patients": 3200,
+  "total_observations": 1286014,
+  "duplicate_observations": 3094,
+  "invalid_values_detected": 0,
+  "outcome_distribution": {
+    "In_hospital_death_0": 2757,
+    "In_hospital_death_1": 443
+  },
+  "parameter_coverage": {
+    "HR": {
+      "patient_count": 3146,
+      "coverage_pct": 98.31,
+      "total_observations": 182280
+    },
+    "GCS": {
+      "patient_count": 3145,
+      "coverage_pct": 98.28,
+      "total_observations": 49199
+    },
+    "Temp": {
+      "patient_count": 3145,
+      "coverage_pct": 98.28,
+      "total_observations": 69491
+    },
+    "HCT": {
+      "patient_count": 3143,
+      "coverage_pct": 98.22,
+      "total_observations": 14657
+    },
+    "BUN": {
+      "patient_count": 3142,
+      "coverage_pct": 98.19,
+      "total_observations": 11078
+    },
+    "Creatinine": {
+      "patient_count": 3142,
+      "coverage_pct": 98.19,
+      "total_observations": 11132
+    },
+    "Platelets": {
+      "patient_count": 3138,
+      "coverage_pct": 98.06,
+      "total_observations": 11260
+    },
+    "WBC": {
+      "patient_count": 3135,
+      "coverage_pct": 97.97,
+      "total_observations": 10310
+    },
+    "Na": {
+      "patient_count": 3133,
+      "coverage_pct": 97.91,
+      "total_observations": 10769
+    },
+    "HCO3": {
+      "patient_count": 3132,
+      "coverage_pct": 97.88,
+      "total_observations": 10830
+    },
+    "Mg": {
+      "patient_count": 3113,
+      "coverage_pct": 97.28,
+      "total_observations": 10807
+    },
+    "K": {
+      "patient_count": 3112,
+      "coverage_pct": 97.25,
+      "total_observations": 11468
+    },
+    "Urine": {
+      "patient_count": 3105,
+      "coverage_pct": 97.03,
+      "total_observations": 109818
+    },
+    "Glucose": {
+      "patient_count": 3098,
+      "coverage_pct": 96.81,
+      "total_observations": 10326
+    },
+    "NISysABP": {
+      "patient_count": 2770,
+      "coverage_pct": 86.56,
+      "total_observations": 77544
+    },
+    "NIDiasABP": {
+      "patient_count": 2761,
+      "coverage_pct": 86.28,
+      "total_observations": 77456
+    },
+    "NIMAP": {
+      "patient_count": 2759,
+      "coverage_pct": 86.22,
+      "total_observations": 76419
+    },
+    "pH": {
+      "patient_count": 2450,
+      "coverage_pct": 76.56,
+      "total_observations": 19670
+    },
+    "PaCO2": {
+      "patient_count": 2436,
+      "coverage_pct": 76.12,
+      "total_observations": 18808
+    },
+    "PaO2": {
+      "patient_count": 2436,
+      "coverage_pct": 76.12,
+      "total_observations": 18785
+    },
+    "DiasABP": {
+      "patient_count": 2256,
+      "coverage_pct": 70.5,
+      "total_observations": 117346
+    },
+    "SysABP": {
+      "patient_count": 2256,
+      "coverage_pct": 70.5,
+      "total_observations": 117408
+    },
+    "MAP": {
+      "patient_count": 2251,
+      "coverage_pct": 70.34,
+      "total_observations": 117502
+    },
+    "FiO2": {
+      "patient_count": 2183,
+      "coverage_pct": 68.22,
+      "total_observations": 25883
+    },
+    "MechVent": {
+      "patient_count": 2034,
+      "coverage_pct": 63.56,
+      "total_observations": 24855
+    },
+    "Lactate": {
+      "patient_count": 1753,
+      "coverage_pct": 54.78,
+      "total_observations": 6335
+    },
+    "SaO2": {
+      "patient_count": 1453,
+      "coverage_pct": 45.41,
+      "total_observations": 6734
+    },
+    "AST": {
+      "patient_count": 1388,
+      "coverage_pct": 43.38,
+      "total_observations": 2530
+    },
+    "ALT": {
+      "patient_count": 1385,
+      "coverage_pct": 43.28,
+      "total_observations": 2527
+    },
+    "Bilirubin": {
+      "patient_count": 1376,
+      "coverage_pct": 43.0,
+      "total_observations": 2525
+    },
+    "ALP": {
+      "patient_count": 1357,
+      "coverage_pct": 42.41,
+      "total_observations": 2451
+    },
+    "Albumin": {
+      "patient_count": 1302,
+      "coverage_pct": 40.69,
+      "total_observations": 1898
+    },
+    "RespRate": {
+      "patient_count": 875,
+      "coverage_pct": 27.34,
+      "total_observations": 43663
+    },
+    "TroponinT": {
+      "patient_count": 682,
+      "coverage_pct": 21.31,
+      "total_observations": 1643
+    },
+    "Cholesterol": {
+      "patient_count": 243,
+      "coverage_pct": 7.59,
+      "total_observations": 251
+    },
+    "TroponinI": {
+      "patient_count": 171,
+      "coverage_pct": 5.34,
+      "total_observations": 356
+    }
+  }
+}
