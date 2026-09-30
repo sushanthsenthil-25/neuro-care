@@ -1,7 +1,6 @@
 import os
 import json
 import math
-import numpy as np
 import urllib.request
 import urllib.error
 from typing import Dict, Any, List, Optional
@@ -245,7 +244,7 @@ def format_intent_response(intent: str, patient_id: str, context_data: Dict[str,
 
     if intent == "missing_data":
         dq = ew_res.get("data_quality", "GOOD")
-        missing_count = sum(1 for v in features.values() if v is None or (isinstance(v, float) and np.isnan(v)))
+        missing_count = sum(1 for v in features.values() if v is None or (isinstance(v, float) and math.isnan(v)))
         return (
             f"**NeuroCare AI — Data Quality & Missingness (Patient #{patient_id})**\n\n"
             f"• **Telemetry Data Quality Status:** `{dq}`\n"
