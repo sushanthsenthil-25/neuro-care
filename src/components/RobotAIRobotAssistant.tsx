@@ -58,7 +58,7 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
     }
   }, [messages, isOpen]);
 
-  const handleSendMessage = async (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string, explicitIntent?: string) => {
     const query = textToSend || inputValue.trim();
     if (!query || isLoading) return;
 
@@ -74,7 +74,10 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
     setIsLoading(true);
 
     const activeId = patientId || '132547';
-    const res: GrokChatResponse = await sendGrokChatMessage(activeId, query);
+    const requestId = `req-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const conversationId = `conv-${activeId}`;
+
+    const res: GrokChatResponse = await sendGrokChatMessage(activeId, query, explicitIntent, conversationId, requestId);
 
     const botMsg: Message = {
       id: `msg-b-${Date.now()}`,
@@ -86,8 +89,8 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
     setIsLoading(false);
   };
 
-  const handleQuickAction = (actionText: string) => {
-    handleSendMessage(actionText);
+  const handleQuickAction = (actionText: string, intent: string) => {
+    handleSendMessage(actionText, intent);
   };
 
   return (
@@ -190,7 +193,7 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
             {isLoading && (
               <div className="flex items-center gap-2 text-slate-400 text-xs font-mono p-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#FF897E]" />
-                <span>Grok AI processing verified context...</span>
+                <span>NeuroCare AI analyzing patient context...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -199,31 +202,31 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
           {/* CHAT QUICK ACTIONS */}
           <div className="p-2 bg-slate-900 border-t border-slate-800 overflow-x-auto flex items-center gap-1.5 scrollbar-none">
             <button
-              onClick={() => handleQuickAction("Explain Patient")}
+              onClick={() => handleQuickAction("Explain Patient", "patient_summary")}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
             >
               Explain Patient
             </button>
             <button
-              onClick={() => handleQuickAction("Explain Risk")}
+              onClick={() => handleQuickAction("Explain Risk", "risk_explanation")}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
             >
               Explain Risk
             </button>
             <button
-              onClick={() => handleQuickAction("Recent Changes")}
+              onClick={() => handleQuickAction("Recent Changes", "recent_changes")}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
             >
               Recent Changes
             </button>
             <button
-              onClick={() => handleQuickAction("Explain Trends")}
+              onClick={() => handleQuickAction("Explain Trends", "trends")}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
             >
               Explain Trends
             </button>
             <button
-              onClick={() => handleQuickAction("Missing Data")}
+              onClick={() => handleQuickAction("Missing Data", "missing_data")}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
             >
               Missing Data

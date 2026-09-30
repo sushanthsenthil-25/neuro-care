@@ -35,6 +35,8 @@ class GrokChatRequest(BaseModel):
     patient_id: str
     message: str
     conversation_id: Optional[str] = None
+    intent: Optional[str] = None
+    request_id: Optional[str] = None
 
 class RoomAccessEvent(BaseModel):
     event_id: Optional[str] = None
@@ -380,7 +382,11 @@ def grok_ai_chat(req: GrokChatRequest):
     try:
         if not req.patient_id or not req.message:
             raise HTTPException(status_code=400, detail="patient_id and message are required.")
-        res = call_grok_chat(req.patient_id, req.message)
+        res = call_grok_chat(
+            patient_id=req.patient_id,
+            user_message=req.message,
+            provided_intent=req.intent
+        )
         return res
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Patient RecordID {req.patient_id} not found.")
