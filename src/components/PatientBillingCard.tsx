@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Receipt, Edit3 } from 'lucide-react';
 import { pharmacyStore } from '../services/pharmacyStore';
+import { formatINR } from '../utils/currency';
 import type { PatientBillingItem } from '../types/icu';
 
 interface PatientBillingCardProps {
@@ -52,7 +53,7 @@ export const PatientBillingCard: React.FC<PatientBillingCardProps> = ({ patientI
         <div className="text-right">
           <span className="text-[10px] text-slate-400 uppercase font-bold block">Current Total Bill</span>
           <span className="text-lg font-black text-slate-900 dark:text-slate-100">
-            ${totalBill.toFixed(2)}
+            {formatINR(totalBill)}
           </span>
         </div>
       </div>
@@ -85,7 +86,7 @@ export const PatientBillingCard: React.FC<PatientBillingCardProps> = ({ patientI
                   )}
                 </div>
                 <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                  ${item.unitPrice.toFixed(2)} × {item.quantity} units • {item.timestamp}
+                  {formatINR(item.unitPrice)} × {item.quantity} units • {item.timestamp}
                 </div>
                 {item.isCorrected && (
                   <div className="text-[10px] text-red-600 dark:text-red-400 font-bold no-underline">
@@ -96,7 +97,7 @@ export const PatientBillingCard: React.FC<PatientBillingCardProps> = ({ patientI
 
               <div className="flex items-center gap-3">
                 <span className="font-black text-slate-900 dark:text-slate-100 text-sm">
-                  ${item.totalAmount.toFixed(2)}
+                  {formatINR(item.totalAmount)}
                 </span>
 
                 {!item.isCorrected && (

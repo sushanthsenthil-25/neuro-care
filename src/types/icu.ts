@@ -257,7 +257,7 @@ export interface MedicineItem {
   dosageForm: 'Tablet' | 'Capsule' | 'IV Infusion' | 'IV Injection' | 'Oral Solution' | 'Sachet' | 'Vial' | 'Ampoule';
   category: 'Antibiotic' | 'Analgesic' | 'Antihistamine' | 'Electrolyte/Fluid' | 'Cardiovascular' | 'Gastrointestinal' | 'Diuretic' | 'Respiratory';
   minimumStockThreshold: number;
-  unitPrice: number; // in currency, e.g., $ or ₹
+  unitPrice: number; // in INR (₹)
   supplier: {
     name: string;
     contact: string;

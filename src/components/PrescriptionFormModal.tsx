@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, AlertTriangle, Stethoscope } from 'lucide-react';
 import { pharmacyStore } from '../services/pharmacyStore';
+import { formatINR } from '../utils/currency';
 import type { Patient, MedicineItem, Prescription } from '../types/icu';
 
 interface PrescriptionFormModalProps {
@@ -180,7 +181,7 @@ export const PrescriptionFormModal: React.FC<PrescriptionFormModalProps> = ({
               <div>
                 <span className="font-bold text-slate-800 dark:text-slate-200 block">{selectedMed.name}</span>
                 <span className="text-[11px] text-slate-400">
-                  {selectedMed.category} • Supplier: {selectedMed.supplier.name} • Unit Charge: ${selectedMed.unitPrice.toFixed(2)}
+                  {selectedMed.category} • Supplier: {selectedMed.supplier.name} • Unit Charge: {formatINR(selectedMed.unitPrice)}
                 </span>
               </div>
               <div className="text-right">

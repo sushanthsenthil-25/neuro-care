@@ -12,6 +12,7 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 import { pharmacyStore } from '../services/pharmacyStore';
+import { formatINR } from '../utils/currency';
 import type { MedicineItem, StockMovement, MedicineBatch } from '../types/icu';
 
 interface MedicineInventoryModalProps {
@@ -321,7 +322,7 @@ export const MedicineInventoryModal: React.FC<MedicineInventoryModalProps> = ({
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        Supplier: <span className="font-semibold">{med.supplier.name}</span> • Lead time: {med.supplier.leadTimeDays}d • Unit Price: ${med.unitPrice.toFixed(2)}
+                        Supplier: <span className="font-semibold">{med.supplier.name}</span> • Lead time: {med.supplier.leadTimeDays}d • Unit Price: {formatINR(med.unitPrice)}
                       </p>
                     </div>
 
@@ -621,7 +622,7 @@ export const MedicineInventoryModal: React.FC<MedicineInventoryModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Hospital Unit Charge ($ / ₹)</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Hospital Unit Charge (₹)</label>
                 <input
                   type="number"
                   step="0.01"

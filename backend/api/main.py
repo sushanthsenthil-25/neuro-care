@@ -424,25 +424,60 @@ def get_room_access_history(patient_id: str):
 @app.post("/room-access/event")
 def log_room_access_event(evt: RoomAccessEvent):
     import datetime
-    now_str = datetime.datetime.now().strftime("%H:%M")
-    created_iso = datetime.datetime.now().isoformat() + "Z"
+    now = datetime.datetime.now()
+    now_str = now.strftime("%H:%M")
+    created_iso = now.isoformat() + "Z"
     
-    new_evt = {
-        "event_id": f"evt-{len(ROOM_ACCESS_STORE) + 101}",
-        "patient_id": evt.patient_id,
-        "room_id": evt.room_id,
-        "user_id": evt.user_id,
-        "role": evt.role,
-        "display_name": evt.display_name,
-        "entry_time": now_str if evt.action == "ENTER" else "N/A",
-        "exit_time": now_str if evt.action == "EXIT" else "ACTIVE NOW",
-        "duration": "Active Session" if evt.action == "ENTER" else "Session Closed",
-        "source": evt.source,
-        "status": "ACTIVE" if evt.action == "ENTER" else "COMPLETED",
-        "created_at": created_iso
-    }
-    ROOM_ACCESS_STORE.insert(0, new_evt)
-    return {"status": "success", "event": new_evt}
+    if evt.action == "EXIT":
+        # Look for existing active session for this patient
+        for e in ROOM_ACCESS_STORE:
+            if e["patient_id"] == evt.patient_id and (e.get("status") == "ACTIVE" or e.get("exit_time") == "ACTIVE NOW"):
+                e["exit_time"] = now_str
+                e["status"] = "COMPLETED"
+                try:
+                    entry_parts = [int(p) for p in e["entry_time"].split(":")]
+                    mins = (now.hour * 60 + now.minute) - (entry_parts[0] * 60 + entry_parts[1])
+                    if mins < 0:
+                        mins += 24 * 60
+                    e["duration"] = f"{max(1, mins)} min"
+                except Exception:
+                    e["duration"] = "Session Closed"
+                return {"status": "success", "event": e}
+        
+        # If no active session was found, insert a completed record
+        new_evt = {
+            "event_id": f"evt-{len(ROOM_ACCESS_STORE) + 101}",
+            "patient_id": evt.patient_id,
+            "room_id": evt.room_id,
+            "user_id": evt.user_id,
+            "role": evt.role,
+            "display_name": evt.display_name,
+            "entry_time": now_str,
+            "exit_time": now_str,
+            "duration": "1 min",
+            "source": evt.source,
+            "status": "COMPLETED",
+            "created_at": created_iso
+        }
+        ROOM_ACCESS_STORE.insert(0, new_evt)
+        return {"status": "success", "event": new_evt}
+    else:
+        new_evt = {
+            "event_id": f"evt-{len(ROOM_ACCESS_STORE) + 101}",
+            "patient_id": evt.patient_id,
+            "room_id": evt.room_id,
+            "user_id": evt.user_id,
+            "role": evt.role,
+            "display_name": evt.display_name,
+            "entry_time": now_str,
+            "exit_time": "ACTIVE NOW",
+            "duration": "Active Session",
+            "source": evt.source,
+            "status": "ACTIVE",
+            "created_at": created_iso
+        }
+        ROOM_ACCESS_STORE.insert(0, new_evt)
+        return {"status": "success", "event": new_evt}
 
 if __name__ == "__main__":
     import uvicorn  # type: ignore

@@ -11,7 +11,8 @@ import {
   Truck,
   Droplet,
   Clock,
-  Plus
+  Plus,
+  ExternalLink
 } from 'lucide-react';
 import { AnimatedNumber } from './AnimatedNumber';
 import { fetchActiveAlertsOverview } from '../services/aiEngine';
@@ -186,6 +187,18 @@ export const DoctorDashboardView: React.FC<DoctorDashboardViewProps> = ({
             >
               <Droplet className="w-3.5 h-3.5 text-red-600 fill-current" /> Blood Donor Requests ({allBloodReqs.length})
             </button>
+            <a
+              href="https://blood-bridgeog.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+              title="Open Blood Bridge live blood donor network in a new tab"
+              aria-label="Find Blood Donor on Blood Bridge"
+            >
+              <Droplet className="w-3.5 h-3.5 text-white fill-current" />
+              <span>Find Blood Donor</span>
+              <ExternalLink className="w-3 h-3 text-red-100 opacity-90" />
+            </a>
           </div>
 
           <span className="text-[11px] text-slate-400">
@@ -534,12 +547,26 @@ export const DoctorDashboardView: React.FC<DoctorDashboardViewProps> = ({
                 Emergency Blood Bank Requests & Matched Donors
               </h3>
             </div>
-            <button
-              onClick={() => setIsBloodOpen(true)}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"
-            >
-              Open Blood Bank Terminal
-            </button>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://blood-bridgeog.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                title="Open Blood Bridge live blood donor network in a new tab"
+                aria-label="Find Blood Donor on Blood Bridge"
+              >
+                <Droplet className="w-3.5 h-3.5 fill-current" />
+                <span>Find Blood Donor</span>
+                <ExternalLink className="w-3 h-3 text-red-100 opacity-90" />
+              </a>
+              <button
+                onClick={() => setIsBloodOpen(true)}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-lg font-bold"
+              >
+                Open Blood Bank Terminal
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">

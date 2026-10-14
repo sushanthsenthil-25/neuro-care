@@ -300,27 +300,51 @@ export interface RoomAccessEventData {
   status?: string;
 }
 
+import { roomAccessStore } from './roomAccessStore';
+
 export async function fetchRoomAccessEvents(patientId: string): Promise<RoomAccessEventData[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/room-access/${patientId}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.events || [];
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.events) && data.events.length > 0) {
+        return data.events;
+      }
+    }
   } catch (err) {
-    return [];
+    // Backend offline or unreachable: fall back to persistent local store
   }
+  return roomAccessStore.getEvents(patientId);
 }
 
 export async function logRoomAccessEventBackend(evt: RoomAccessEventData): Promise<boolean> {
+  // Persist locally first to guarantee state updates and instant responsiveness
+  try {
+    if (evt.action === 'ENTER') {
+      roomAccessStore.enterRoom({
+        patientId: evt.patient_id,
+        roomId: evt.room_id,
+        userRole: evt.role,
+        userName: evt.display_name,
+        source: evt.source,
+      });
+    } else if (evt.action === 'EXIT') {
+      roomAccessStore.exitRoom(evt.patient_id);
+    }
+  } catch (storeErr) {
+    console.warn('Could not save to local roomAccessStore:', storeErr);
+  }
+
+  // Sync with FastAPI backend if available
   try {
     const res = await fetch(`${API_BASE_URL}/room-access/event`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(evt)
+      body: JSON.stringify(evt),
     });
     return res.ok;
   } catch (err) {
-    return false;
+    return true; // Successfully logged to client store
   }
 }
 

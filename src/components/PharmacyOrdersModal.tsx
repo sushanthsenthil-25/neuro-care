@@ -8,6 +8,7 @@ import {
   Send
 } from 'lucide-react';
 import { pharmacyStore } from '../services/pharmacyStore';
+import { formatINR } from '../utils/currency';
 import type { PharmacyOrder, DeliveryStatus } from '../types/icu';
 
 interface PharmacyOrdersModalProps {
@@ -283,7 +284,7 @@ export const PharmacyOrdersModal: React.FC<PharmacyOrdersModalProps> = ({
                       Patient: <span className="font-bold">{activeOrder.patientName}</span> (#{activeOrder.patientId}) • Room: {activeOrder.room} • {activeOrder.bedNumber}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Prescription Ref: {activeOrder.prescriptionId} • Total Charge: ${activeOrder.totalCost.toFixed(2)} (Billed: {activeOrder.billedToPatient ? 'Yes' : 'On Delivery'})
+                      Prescription Ref: {activeOrder.prescriptionId} • Total Charge: {formatINR(activeOrder.totalCost)} (Billed: {activeOrder.billedToPatient ? 'Yes' : 'On Delivery'})
                     </p>
                   </div>
 
