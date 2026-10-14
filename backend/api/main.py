@@ -37,6 +37,7 @@ class GrokChatRequest(BaseModel):
     conversation_id: Optional[str] = None
     intent: Optional[str] = None
     request_id: Optional[str] = None
+    last_context: Optional[Dict[str, Any]] = None
 
 class RoomAccessEvent(BaseModel):
     event_id: Optional[str] = None
@@ -385,7 +386,8 @@ def grok_ai_chat(req: GrokChatRequest):
         res = call_grok_chat(
             patient_id=req.patient_id,
             user_message=req.message,
-            provided_intent=req.intent
+            provided_intent=req.intent,
+            last_context=req.last_context
         )
         return res
     except KeyError:

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, RefreshCw } from 'lucide-react';
+import { X, Send, RefreshCw, RotateCcw } from 'lucide-react';
 import { sendGrokChatMessage } from '../services/aiEngine';
 import type { GrokChatResponse } from '../services/aiEngine';
 
@@ -15,6 +15,17 @@ interface Message {
   timestamp: string;
   isError?: boolean;
 }
+
+const SUGGESTED_PROMPTS = [
+  { label: "Summarise this patient's current condition", query: "Summarise this patient's current condition", intent: "patient_condition" },
+  { label: "Show the latest vital-sign trends", query: "Show the latest vital-sign trends", intent: "trends" },
+  { label: "Explain active clinical alerts", query: "Explain active clinical alerts", intent: "ward_multi_patient" },
+  { label: "Check medicine availability", query: "Check medicine availability", intent: "medicine_stock" },
+  { label: "Find medicines expiring soon", query: "Find medicines expiring soon", intent: "medicine_expiry" },
+  { label: "Show pending pharmacy orders", query: "Show pending pharmacy orders", intent: "pending_orders" },
+  { label: "Explain equipment warnings", query: "Explain equipment warnings", intent: "equipment_status" },
+  { label: "Summarise the patient queue", query: "Summarise the patient queue", intent: "queue_status" },
+];
 
 export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
   patientId,
@@ -33,6 +44,7 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [lastFailedQuery, setLastFailedQuery] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -49,6 +61,7 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+      conversationContextRef.current.lastPatientId = patientId;
     }
   }, [patientId, patientName]);
 
@@ -58,9 +71,40 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
     }
   }, [messages, isOpen]);
 
+  const conversationContextRef = useRef<{
+    lastPatientId?: string;
+    lastMedicine?: string;
+    lastBatch?: string;
+  }>({});
+
+  const handleClearConversation = () => {
+    conversationContextRef.current = {
+      lastPatientId: patientId
+    };
+    setLastFailedQuery(null);
+    setMessages([
+      {
+        id: `msg-welcome-${Date.now()}`,
+        sender: 'bot',
+        text: patientId
+          ? `Conversation cleared. I am ready to review verified telemetry and hospital records for Patient #${patientId} (${patientName}). How can I help?`
+          : `Conversation cleared. Select a patient or ask about formulary inventory, delivery status, triage queue, or equipment telemetry.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  };
+
   const handleSendMessage = async (textToSend?: string, explicitIntent?: string) => {
     const query = textToSend || inputValue.trim();
     if (!query || isLoading) return;
+
+    // Track conversational context entities from query
+    const queryLower = query.toLowerCase();
+    for (const medName of ['paracetamol', 'ceftriaxone', 'amoxicillin', 'cetirizine', 'furosemide', 'omeprazole', 'heparin', 'norepinephrine', 'saline', 'dextrose', 'ors', 'pcm', 'ctx']) {
+      if (queryLower.includes(medName)) {
+        conversationContextRef.current.lastMedicine = medName;
+      }
+    }
 
     const userMsg: Message = {
       id: `msg-u-${Date.now()}`,
@@ -72,25 +116,114 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
     setMessages((prev) => [...prev, userMsg]);
     if (!textToSend) setInputValue('');
     setIsLoading(true);
+    setLastFailedQuery(null);
 
-    const activeId = patientId || '132547';
+    const activeId = patientId || conversationContextRef.current.lastPatientId || '132547';
     const requestId = `req-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     const conversationId = `conv-${activeId}`;
 
-    const res: GrokChatResponse = await sendGrokChatMessage(activeId, query, explicitIntent, conversationId, requestId);
+    try {
+      const res: GrokChatResponse = await sendGrokChatMessage(
+        activeId,
+        query,
+        explicitIntent,
+        conversationId,
+        requestId,
+        conversationContextRef.current
+      );
 
-    const botMsg: Message = {
-      id: `msg-b-${Date.now()}`,
-      sender: 'bot',
-      text: res.response,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    setMessages((prev) => [...prev, botMsg]);
-    setIsLoading(false);
+      if (res.patient_id) {
+        conversationContextRef.current.lastPatientId = res.patient_id;
+      }
+
+      const botMsg: Message = {
+        id: `msg-b-${Date.now()}`,
+        sender: 'bot',
+        text: res.response,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err) {
+      setLastFailedQuery(query);
+      const errMsg: Message = {
+        id: `msg-err-${Date.now()}`,
+        sender: 'bot',
+        text: 'I could not retrieve the verified hospital information at this moment. Please verify the connection or click Retry.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isError: true
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleQuickAction = (actionText: string, intent: string) => {
-    handleSendMessage(actionText, intent);
+  const handleRetry = () => {
+    if (lastFailedQuery) {
+      handleSendMessage(lastFailedQuery);
+    }
+  };
+
+  const renderFormattedMessage = (rawText: string) => {
+    // Sanitize repeated asterisks (****) and code blocks
+    const text = rawText
+      .replace(/\*{4,}/g, '**')
+      .replace(/(?<!\*)\*\*\*(?!\*)/g, '**')
+      .replace(/^```(?:markdown|json)?\s*/i, '')
+      .replace(/\s*```$/i, '');
+
+    const lines = text.split('\n');
+
+    return (
+      <div className="space-y-1.5 leading-relaxed">
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            return <div key={idx} className="h-1" />;
+          }
+
+          // Bullet point detection (•, -, *)
+          const isBullet = trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ');
+          const cleanLine = isBullet ? trimmed.replace(/^[•\-\*]\s*/, '') : trimmed;
+
+          // Parse inline bold (**bold**) and inline code (`code`)
+          const parts = cleanLine.split(/(\*\*.*?\*\*|`.*?`)/g);
+
+          const content = parts.map((part, pIdx) => {
+            if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+              return (
+                <strong key={pIdx} className="font-bold text-slate-100">
+                  {part.slice(2, -2)}
+                </strong>
+              );
+            }
+            if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+              return (
+                <span key={pIdx} className="bg-slate-900/90 text-amber-300 px-1 py-0.5 rounded text-[10.5px] border border-slate-700/60 font-mono">
+                  {part.slice(1, -1)}
+                </span>
+              );
+            }
+            return part;
+          });
+
+          if (isBullet) {
+            return (
+              <div key={idx} className="flex items-start gap-1.5 pl-1.5">
+                <span className="text-[#FF897E] font-bold select-none">•</span>
+                <div className="flex-1 text-slate-200">{content}</div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={idx} className="text-slate-200">
+              {content}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -148,13 +281,25 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={() => setIsOpen(false)}
-              aria-label="Close NeuroCare AI assistant"
-              className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors focus:outline-none"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleClearConversation}
+                title="Start a fresh conversation (Clear context)"
+                aria-label="Start a fresh conversation"
+                className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors focus:outline-none flex items-center gap-1 text-[11px] font-mono"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">New Chat</span>
+              </button>
+
+              <button
+                onClick={() => setIsOpen(false)}
+                aria-label="Close NeuroCare AI assistant"
+                className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors focus:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* MESSAGES CONTAINER */}
@@ -173,7 +318,7 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
                 )}
                 <div className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   <div
-                    className={`max-w-[85%] p-3 rounded-xl shadow-sm leading-relaxed ${
+                    className={`max-w-[88%] p-3 rounded-xl shadow-sm leading-relaxed ${
                       msg.sender === 'user'
                         ? 'bg-[#FF897E] text-slate-950 font-medium rounded-br-none'
                         : msg.isError
@@ -181,7 +326,25 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
                         : 'bg-slate-800/90 border border-slate-700/80 text-slate-200 rounded-bl-none font-mono text-[11.5px]'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                    {msg.sender === 'user' ? (
+                      <p className="whitespace-pre-wrap font-medium">{msg.text}</p>
+                    ) : (
+                      <>
+                        {renderFormattedMessage(msg.text)}
+                        {msg.isError && lastFailedQuery && (
+                          <div className="mt-2.5 pt-2 border-t border-rose-800/60 flex items-center gap-2">
+                            <button
+                              onClick={handleRetry}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-900/80 hover:bg-rose-800 text-rose-100 rounded text-[11px] font-mono transition-colors border border-rose-600/70"
+                            >
+                              <RefreshCw className="w-3 h-3" />
+                              Retry Question
+                            </button>
+                            <span className="text-[10px] text-rose-300">Network or service interruption</span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                   <span className="text-[10px] text-slate-400 mt-1 font-mono px-1">
                     {msg.timestamp}
@@ -191,76 +354,25 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
             ))}
 
             {isLoading && (
-              <div className="flex items-center gap-2 text-slate-400 text-xs font-mono p-2">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-mono p-2 bg-slate-900/60 border border-slate-800 rounded-lg animate-pulse">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#FF897E]" />
-                <span>NeuroCare AI analyzing patient context...</span>
+                <span>NeuroCare Assistant querying authorized hospital telemetry...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* CHAT QUICK ACTIONS */}
+          {/* CHAT QUICK SHORTCUT PROMPTS (Section 4) */}
           <div className="p-2 bg-slate-900 border-t border-slate-800 overflow-x-auto flex items-center gap-1.5 scrollbar-none">
-            <button
-              onClick={() => handleQuickAction("Explain Patient", "patient_summary")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
-            >
-              Explain Patient
-            </button>
-            <button
-              onClick={() => handleQuickAction("Explain Risk", "risk_explanation")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
-            >
-              Explain Risk
-            </button>
-            <button
-              onClick={() => handleQuickAction("Medicine Stock", "medicine_stock")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-purple-300"
-            >
-              Medicine Stock
-            </button>
-            <button
-              onClick={() => handleQuickAction("Delivery Status", "delivery_status")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-blue-300"
-            >
-              Delivery Status
-            </button>
-            <button
-              onClick={() => handleQuickAction("Triage Queue", "queue_status")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-amber-300"
-            >
-              Triage Queue
-            </button>
-            <button
-              onClick={() => handleQuickAction("Equipment Check", "equipment_status")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-emerald-300"
-            >
-              Equipment Telemetry
-            </button>
-            <button
-              onClick={() => handleQuickAction("Blood Bank", "blood_status")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-red-300"
-            >
-              Blood Bank
-            </button>
-            <button
-              onClick={() => handleQuickAction("Recent Changes", "recent_changes")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
-            >
-              Recent Changes
-            </button>
-            <button
-              onClick={() => handleQuickAction("Explain Trends", "trends")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
-            >
-              Explain Trends
-            </button>
-            <button
-              onClick={() => handleQuickAction("Missing Data", "missing_data")}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
-            >
-              Missing Data
-            </button>
+            {SUGGESTED_PROMPTS.map((prompt, pIdx) => (
+              <button
+                key={pIdx}
+                onClick={() => handleSendMessage(prompt.query, prompt.intent)}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-[#FF897E] active:text-slate-950 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700/80 hover:border-[#FF897E]/50 whitespace-nowrap transition-colors flex items-center gap-1 shrink-0"
+              >
+                <span>{prompt.label}</span>
+              </button>
+            ))}
           </div>
 
           {/* INPUT FORM */}
@@ -275,7 +387,7 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask Grok AI about this patient..."
+              placeholder="Ask Dr. AI about patient vitals, stock sufficiency, queue, or equipment..."
               className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#FF897E] font-mono"
             />
             <button
