@@ -5,6 +5,7 @@ import { Pill, Activity, FileText, AlertTriangle, Stethoscope, Syringe, Clock, C
 import { motion } from 'framer-motion';
 import { fetchVitalsTrends, fetchTelemetryStatus } from '../services/aiEngine';
 import type { VitalsTrendsResponse, TelemetryStatusResponse } from '../services/aiEngine';
+import { useTheme } from '../services/themeContext';
 
 interface PatientTimelineProps {
   events: TimelineEvent[];
@@ -13,6 +14,8 @@ interface PatientTimelineProps {
 }
 
 export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals, patientId }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [rangeHours, setRangeHours] = useState<number>(24);
   const [selectedSensor, setSelectedSensor] = useState<'HR' | 'SaO2' | 'RespRate' | 'BloodPressure' | 'Temp' | 'GCS'>('HR');
   const [trendData, setTrendData] = useState<VitalsTrendsResponse | null>(null);
@@ -177,28 +180,28 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
   return (
     <div className="space-y-6">
       {/* 1. VITAL TRENDS & TIME RANGE CONTROLS */}
-      <div className="clinical-card p-5 bg-white border border-slate-200 rounded-xl shadow-xs space-y-4">
+      <div className="clinical-card p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs space-y-4">
         
         {/* Header, View Mode Toggle & Time Range Selection Buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-tight flex items-center gap-2">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
               <Activity className="w-4 h-4 text-red-600" /> Chronological Telemetry & Vital Trends (RecordID {patientId})
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Preserves exact dataset timestamps. Device telemetry health is evaluated independently from patient clinical risk.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-mono font-bold">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold">
               <button
                 onClick={() => setViewMode('single')}
                 className={`px-3 py-1 rounded transition-colors ${
                   viewMode === 'single'
                     ? 'bg-red-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
                 Single Sensor View
@@ -208,7 +211,7 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
                 className={`px-3 py-1 rounded transition-colors ${
                   viewMode === 'multiline'
                     ? 'bg-red-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
                 Multi-Vital Grid Overview
@@ -216,15 +219,15 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
             </div>
 
             {/* Range Hours Buttons */}
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-mono font-bold">
+            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold">
               {[6, 12, 24, 48].map((h) => (
                 <button
                   key={h}
                   onClick={() => setRangeHours(h)}
                   className={`px-3 py-1 rounded transition-colors ${
                     rangeHours === h
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   {h}H
@@ -334,7 +337,7 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
         </div>
 
         {/* Vital Trend Graph (Grid Chart Mode Matching Reference Image 2) */}
-        <div className="h-72 w-full bg-slate-50/80 p-3 rounded-xl border border-slate-300 shadow-inner relative overflow-hidden">
+        <div className="h-72 w-full bg-slate-50/80 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-300 dark:border-slate-700 shadow-inner relative overflow-hidden">
           {/* Subtle graph paper grid texture matching reference image 2 */}
           <div 
             className="absolute inset-0 opacity-15 pointer-events-none"
@@ -345,7 +348,7 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
           />
 
           {isLoading && (
-            <div className="absolute inset-0 z-20 bg-white/75 backdrop-blur-[1px] flex items-center justify-center font-mono text-xs font-bold text-slate-700 gap-2">
+            <div className="absolute inset-0 z-20 bg-white/75 dark:bg-slate-900/85 backdrop-blur-[1px] flex items-center justify-center font-mono text-xs font-bold text-slate-700 dark:text-slate-200 gap-2">
               <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
               <span>Fetching Patient Telemetry & Vital Trends...</span>
             </div>
@@ -354,31 +357,38 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
           {viewMode === 'multiline' ? (
             /* Multi-Line Grid Chart Mode (Matching Reference Image 2) */
             <div className="h-full w-full flex flex-col justify-between relative z-10">
-              <div className="flex items-center justify-center gap-6 mb-1 text-[11px] font-mono font-bold">
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-red-600 bg-white"></span> HR (Heart Rate)</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-emerald-600 bg-white"></span> SaO₂ (Oxygen)</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-blue-700 bg-white"></span> SysBP (Systolic)</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-yellow-500 bg-white"></span> RespRate (RPM)</span>
+              <div className="flex items-center justify-center gap-6 mb-1 text-[11px] font-mono font-bold text-slate-800 dark:text-slate-200">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-red-600 bg-white dark:bg-slate-900"></span> HR (Heart Rate)</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-emerald-600 bg-white dark:bg-slate-900"></span> SaO₂ (Oxygen)</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-blue-700 bg-white dark:bg-slate-900"></span> SysBP (Systolic)</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full border-2 border-yellow-500 bg-white dark:bg-slate-900"></span> RespRate (RPM)</span>
               </div>
               <div className="flex-1 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={multiLineSeries} margin={{ top: 10, right: 25, left: 10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="1 1" stroke="#cbd5e1" strokeWidth={1} />
-                    <XAxis dataKey="point" stroke="#475569" fontSize={11} tickLine={true} axisLine={{ stroke: '#94a3b8' }} />
-                    <YAxis domain={[0, 180]} stroke="#475569" fontSize={11} tickLine={true} axisLine={{ stroke: '#94a3b8' }} />
+                    <CartesianGrid strokeDasharray="1 1" stroke={isDark ? '#334155' : '#cbd5e1'} strokeWidth={1} />
+                    <XAxis dataKey="point" stroke={isDark ? '#94a3b8' : '#475569'} fontSize={11} tickLine={true} axisLine={{ stroke: isDark ? '#475569' : '#94a3b8' }} />
+                    <YAxis domain={[0, 180]} stroke={isDark ? '#94a3b8' : '#475569'} fontSize={11} tickLine={true} axisLine={{ stroke: isDark ? '#475569' : '#94a3b8' }} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#ffffff', borderColor: '#94a3b8', borderRadius: '0.375rem', fontSize: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                      contentStyle={{
+                        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                        borderColor: isDark ? '#334155' : '#94a3b8',
+                        color: isDark ? '#f8fafc' : '#0f172a',
+                        borderRadius: '0.375rem',
+                        fontSize: '12px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)'
+                      }}
                       labelFormatter={(label) => `Observation Interval #${label}`}
                     />
 
                     {/* Red line (HR) with open circle nodes matching image 2 */}
-                    <Line type="linear" dataKey="HR" name="Heart Rate (bpm)" stroke="#dc2626" strokeWidth={2} dot={{ r: 4, stroke: '#dc2626', strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
+                    <Line type="linear" dataKey="HR" name="Heart Rate (bpm)" stroke="#dc2626" strokeWidth={2} dot={{ r: 4, stroke: '#dc2626', strokeWidth: 2, fill: isDark ? '#0f172a' : '#ffffff' }} activeDot={{ r: 6 }} />
                     {/* Green line (SaO2) with open circle nodes matching image 2 */}
-                    <Line type="linear" dataKey="SaO2" name="SpO₂ Oxygen (%)" stroke="#059669" strokeWidth={2} dot={{ r: 4, stroke: '#059669', strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
+                    <Line type="linear" dataKey="SaO2" name="SpO₂ Oxygen (%)" stroke="#059669" strokeWidth={2} dot={{ r: 4, stroke: '#059669', strokeWidth: 2, fill: isDark ? '#0f172a' : '#ffffff' }} activeDot={{ r: 6 }} />
                     {/* Blue line (SysBP) with open circle nodes matching image 2 */}
-                    <Line type="linear" dataKey="SysBP" name="Systolic BP (mmHg)" stroke="#1e40af" strokeWidth={2} dot={{ r: 4, stroke: '#1e40af', strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
+                    <Line type="linear" dataKey="SysBP" name="Systolic BP (mmHg)" stroke="#1e40af" strokeWidth={2} dot={{ r: 4, stroke: '#1e40af', strokeWidth: 2, fill: isDark ? '#0f172a' : '#ffffff' }} activeDot={{ r: 6 }} />
                     {/* Yellow line (RespRate) with open circle nodes matching image 2 */}
-                    <Line type="linear" dataKey="RespRate" name="Resp Rate (rpm)" stroke="#eab308" strokeWidth={2} dot={{ r: 4, stroke: '#eab308', strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
+                    <Line type="linear" dataKey="RespRate" name="Resp Rate (rpm)" stroke="#eab308" strokeWidth={2} dot={{ r: 4, stroke: '#eab308', strokeWidth: 2, fill: isDark ? '#0f172a' : '#ffffff' }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -388,11 +398,17 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
             <div className="h-full w-full relative z-10">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={currentSeries} margin={{ top: 10, right: 25, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="1 1" stroke="#cbd5e1" strokeWidth={1} />
-                  <XAxis dataKey="time" stroke="#475569" fontSize={11} tickLine={true} axisLine={{ stroke: '#94a3b8' }} label={{ value: 'Observation Timestamp', position: 'insideBottom', offset: -5, fontSize: 10, fill: '#64748b' }} />
-                  <YAxis domain={currentMeta.domain} stroke="#475569" fontSize={11} tickLine={true} axisLine={{ stroke: '#94a3b8' }} label={{ value: `${currentMeta.label} (${currentMeta.unit})`, angle: -90, position: 'insideLeft', fontSize: 10, fill: '#64748b' }} />
+                  <CartesianGrid strokeDasharray="1 1" stroke={isDark ? '#334155' : '#cbd5e1'} strokeWidth={1} />
+                  <XAxis dataKey="time" stroke={isDark ? '#94a3b8' : '#475569'} fontSize={11} tickLine={true} axisLine={{ stroke: isDark ? '#475569' : '#94a3b8' }} label={{ value: 'Observation Timestamp', position: 'insideBottom', offset: -5, fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} />
+                  <YAxis domain={currentMeta.domain} stroke={isDark ? '#94a3b8' : '#475569'} fontSize={11} tickLine={true} axisLine={{ stroke: isDark ? '#475569' : '#94a3b8' }} label={{ value: `${currentMeta.label} (${currentMeta.unit})`, angle: -90, position: 'insideLeft', fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '0.375rem', fontSize: '12px' }}
+                    contentStyle={{
+                      backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                      borderColor: isDark ? '#334155' : '#cbd5e1',
+                      color: isDark ? '#f8fafc' : '#0f172a',
+                      borderRadius: '0.375rem',
+                      fontSize: '12px'
+                    }}
                     formatter={(value: any) => [`${value} ${currentMeta.unit}`, currentMeta.label]}
                   />
 
@@ -402,8 +418,8 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
 
                   {selectedSensor === 'BloodPressure' ? (
                     <>
-                      <Line type="linear" dataKey="sysBp" name="Systolic BP (mmHg)" stroke="#dc2626" strokeWidth={2} dot={{ r: 4, stroke: '#dc2626', strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
-                      <Line type="linear" dataKey="diaBp" name="Diastolic BP (mmHg)" stroke="#1e40af" strokeWidth={2} dot={{ r: 4, stroke: '#1e40af', strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
+                      <Line type="linear" dataKey="sysBp" name="Systolic BP (mmHg)" stroke="#dc2626" strokeWidth={2} dot={{ r: 4, stroke: '#dc2626', strokeWidth: 2, fill: isDark ? '#0f172a' : '#ffffff' }} activeDot={{ r: 6 }} />
+                      <Line type="linear" dataKey="diaBp" name="Diastolic BP (mmHg)" stroke="#1e40af" strokeWidth={2} dot={{ r: 4, stroke: '#1e40af', strokeWidth: 2, fill: isDark ? '#0f172a' : '#ffffff' }} activeDot={{ r: 6 }} />
                     </>
                   ) : (
                     <Line
@@ -412,7 +428,7 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
                       name={`${currentMeta.label} (${currentMeta.unit})`}
                       stroke={currentMeta.color}
                       strokeWidth={2}
-                      dot={{ r: 4, stroke: currentMeta.color, strokeWidth: 2, fill: '#ffffff' }}
+                      dot={{ r: 4, stroke: currentMeta.color, strokeWidth: 2, fill: isDark ? '#0f172a' : '#ffffff' }}
                       activeDot={{ r: 6 }}
                     />
                   )}
@@ -424,11 +440,11 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
       </div>
 
       {/* 2. CHRONOLOGICAL EVENT STREAM */}
-      <div className="clinical-card p-5 bg-white border border-slate-200 rounded-xl shadow-xs">
-        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-4">
+      <div className="clinical-card p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-4">
           Chronological Interventions & Events Stream (Hover to Highlight Chart Position)
         </h3>
-        <div className="relative border-l-2 border-slate-200 ml-3 space-y-6">
+        <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-6">
           {events.map((ev) => (
             <motion.div
               key={ev.id}
@@ -438,20 +454,22 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ events, vitals
               onClick={() => setActiveEventTime(ev.timestamp)}
               className="relative pl-6 cursor-pointer group"
             >
-              <div className={`absolute -left-2.5 top-0.5 w-5 h-5 rounded-full bg-white border-2 flex items-center justify-center transition-colors ${
-                activeEventTime === ev.timestamp ? 'border-red-600 bg-red-50' : 'border-slate-300'
+              <div className={`absolute -left-2.5 top-0.5 w-5 h-5 rounded-full bg-white dark:bg-slate-900 border-2 flex items-center justify-center transition-colors ${
+                activeEventTime === ev.timestamp ? 'border-red-600 bg-red-50 dark:bg-red-950' : 'border-slate-300 dark:border-slate-700'
               }`}>
                 {getEventIcon(ev.type)}
               </div>
 
               <div className={`p-3.5 rounded-lg border transition-all ${
-                activeEventTime === ev.timestamp ? 'bg-red-50/50 border-red-300 shadow-sm' : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                activeEventTime === ev.timestamp
+                  ? 'bg-red-50/50 dark:bg-red-950/40 border-red-300 dark:border-red-900 shadow-sm'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
               }`}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">{ev.title}</span>
-                  <span className="text-[11px] font-mono text-slate-500 font-bold">{ev.timestamp}</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{ev.title}</span>
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-bold">{ev.timestamp}</span>
                 </div>
-                <p className="text-xs text-slate-600 mt-1">{ev.description}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{ev.description}</p>
                 {ev.actor && (
                   <div className="mt-2 text-[10px] text-slate-400 flex items-center gap-1 font-medium">
                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />

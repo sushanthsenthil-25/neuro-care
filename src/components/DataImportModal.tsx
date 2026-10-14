@@ -46,7 +46,7 @@ export const DataImportModal: React.FC<DataImportModalProps> = ({ isOpen, onClos
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden">
         {/* Header */}
         <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -60,40 +60,40 @@ export const DataImportModal: React.FC<DataImportModalProps> = ({ isOpen, onClos
 
         {/* Content */}
         <div className="p-5 space-y-4">
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Import custom clinical datasets (JSON / CSV) to drive NeuroCare live monitoring, telemetry quality engine, and floor layout.
           </p>
 
           {/* File Picker */}
-          <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center bg-slate-50 hover:bg-slate-100/80 transition-colors">
+          <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-4 text-center bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors">
             <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-            <label className="cursor-pointer text-xs font-bold text-red-600 hover:underline">
+            <label className="cursor-pointer text-xs font-bold text-red-600 dark:text-red-400 hover:underline">
               <span>Choose JSON/CSV File</span>
               <input type="file" accept=".json,.csv" onChange={handleFileUpload} className="hidden" />
             </label>
-            <p className="text-[10px] text-slate-400 mt-1">Supports NeuroCare schema or clinical telemetry exports</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Supports NeuroCare schema or clinical telemetry exports</p>
           </div>
 
           {/* Textarea */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-700 mb-1 block">Or Paste Payload Directly:</label>
+            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Or Paste Payload Directly:</label>
             <textarea
               value={jsonText}
               onChange={(e) => setJsonText(e.target.value)}
               placeholder='[ { "id": "NC-ICU-001", "name": "Patient Name", ... } ]'
-              className="w-full h-32 p-3 font-mono text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full h-32 p-3 font-mono text-xs bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
           {error && (
-            <div className="p-2.5 bg-red-50 border border-red-200 rounded text-xs text-red-700 flex items-center gap-2">
+            <div className="p-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-700 flex items-center gap-2">
+            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{success}</span>
             </div>
@@ -101,8 +101,8 @@ export const DataImportModal: React.FC<DataImportModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-50 p-4 border-t border-slate-200 flex items-center justify-between">
-          <span className="text-[10px] text-slate-400">Data integrity verification enabled</span>
+        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500">Data integrity verification enabled</span>
           <button
             onClick={handleImportJSON}
             disabled={!jsonText.trim()}

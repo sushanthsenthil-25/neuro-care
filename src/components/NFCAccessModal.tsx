@@ -49,7 +49,7 @@ export const NFCAccessModal: React.FC<NFCAccessModalProps> = ({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden"
+        className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden"
       >
         {/* Header */}
         <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
@@ -64,15 +64,15 @@ export const NFCAccessModal: React.FC<NFCAccessModalProps> = ({
 
         {/* Content */}
         <div className="p-5 space-y-4">
-          <div className="text-xs text-slate-600 space-y-1">
-            <p className="font-semibold text-slate-900">Contactless Bedside Authentication</p>
+          <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+            <p className="font-semibold text-slate-900 dark:text-white">Contactless Bedside Authentication</p>
             <p>Scanning wristband tag retrieves secure encrypted patient endpoint.</p>
           </div>
 
           {/* Sequence Progress Bar */}
           {sequenceStep !== 'IDLE' && (
-            <div className="p-3 bg-red-50 rounded-lg border border-red-200 text-xs space-y-2">
-              <div className="flex items-center justify-between font-bold text-slate-900">
+            <div className="p-3 bg-red-50 dark:bg-red-950/40 rounded-lg border border-red-200 dark:border-red-900/50 text-xs space-y-2">
+              <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white">
                 <span className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 text-red-600 animate-spin" />
                   {sequenceStep === 'DETECTED' && '1. NFC Tag Detected...'}
@@ -82,7 +82,7 @@ export const NFCAccessModal: React.FC<NFCAccessModalProps> = ({
                 </span>
               </div>
 
-              <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                 <motion.div
                   className="bg-red-600 h-full rounded-full"
                   initial={{ width: '0%' }}
@@ -103,19 +103,19 @@ export const NFCAccessModal: React.FC<NFCAccessModalProps> = ({
           )}
 
           {/* Target Patient Card */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+          <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-lg flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-semibold">Bedside Target Tag</span>
-              <div className="text-xs font-bold text-slate-900">{targetPatient.name}</div>
-              <div className="text-[10px] font-mono text-slate-500">ID: {targetPatient.id} | Bed: {targetPatient.bedNumber}</div>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-semibold">Bedside Target Tag</span>
+              <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{targetPatient.name}</div>
+              <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400">ID: {targetPatient.id} | Bed: {targetPatient.bedNumber}</div>
             </div>
-            <span className="text-[10px] font-mono bg-slate-200 px-2 py-0.5 rounded text-slate-700">
+            <span className="text-[10px] font-mono bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-700 dark:text-slate-200">
               {targetPatient.nfcTagId}
             </span>
           </div>
 
           {/* QR Visual */}
-          <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg border border-dashed border-slate-300">
+          <div className="flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
             <div className="w-28 h-28 bg-slate-900 rounded flex items-center justify-center text-white relative">
               <QrCode className="w-20 h-20 text-slate-100" />
               {sequenceStep === 'COMPLETE' && (
@@ -133,7 +133,7 @@ export const NFCAccessModal: React.FC<NFCAccessModalProps> = ({
 
           {/* Bedside Tag Selectors */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-700 mb-1.5 block">
+            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
               Tap Bedside Patient Tag:
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -143,11 +143,13 @@ export const NFCAccessModal: React.FC<NFCAccessModalProps> = ({
                   onClick={() => handleSimulateTap(p.id)}
                   disabled={sequenceStep !== 'IDLE'}
                   className={`p-2 text-left rounded border text-xs font-medium transition-all ${
-                    simulatedTapId === p.id ? 'border-red-600 bg-red-50 text-red-900 font-bold' : 'border-slate-200 hover:border-slate-300'
+                    simulatedTapId === p.id
+                      ? 'border-red-600 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 font-bold'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
                   <div>{p.name}</div>
-                  <div className="text-[10px] text-slate-500 font-mono">{p.id}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{p.id}</div>
                 </button>
               ))}
             </div>
@@ -155,8 +157,8 @@ export const NFCAccessModal: React.FC<NFCAccessModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-50 p-4 border-t border-slate-200 flex items-center justify-between">
-          <span className="text-[10px] text-slate-500 flex items-center gap-1">
+        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
             <Smartphone className="w-3.5 h-3.5 text-slate-400" /> ISO/IEC 14443 Type A Compliant
           </span>
           <button

@@ -93,69 +93,69 @@ export const DoctorDashboardView: React.FC<DoctorDashboardViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="clinical-card p-6 border-l-4 border-l-red-600 bg-white rounded-xl shadow-xs space-y-3">
+      <div className="clinical-card p-6 border-l-4 border-l-red-600 bg-white dark:bg-slate-900 rounded-xl shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-50 text-red-600 rounded-xl border border-red-200">
+            <div className="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-900">
               <Stethoscope className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
+                <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
                   Doctor Attention Dashboard — Physician Rounding Intelligence
                 </h2>
-                <span className="text-[10px] bg-red-50 text-red-700 font-mono font-bold px-2 py-0.5 rounded border border-red-200 uppercase">
+                <span className="text-[10px] bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 font-mono font-bold px-2 py-0.5 rounded border border-red-200 dark:border-red-800 uppercase">
                   Which patients require my immediate attention?
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Displaying prioritized clinical alerts, deterioration risk trajectories, and dataset vital trends for assigned patients.
               </p>
             </div>
           </div>
 
           <div className="text-right font-mono">
-            <span className="text-xs font-bold text-slate-900 block">{currentDoctorName}</span>
-            <span className="text-[10px] text-slate-500">Attending Intensivist • Ward Unit A</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-white block">{currentDoctorName}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">Attending Intensivist • Ward Unit A</span>
           </div>
         </div>
 
         {/* Doctor Summary Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-center pt-2">
-          <div className="p-3 bg-slate-900 text-white rounded-xl shadow-xs">
+          <div className="p-3 bg-slate-900 dark:bg-slate-800 text-white rounded-xl shadow-xs border border-transparent dark:border-slate-700">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">My Assigned</span>
             <span className="text-xl font-black font-mono block mt-0.5">{assignedPatients.length}</span>
             <span className="text-[9px] text-slate-400">Patients</span>
           </div>
 
-          <div className="p-3 bg-red-50 rounded-xl border border-red-200">
-            <span className="text-[10px] text-red-600 font-bold uppercase block">Critical</span>
-            <span className="text-xl font-black font-mono text-red-600 block mt-0.5">{criticalCount}</span>
-            <span className="text-[9px] text-red-700 font-bold">Action Needed</span>
+          <div className="p-3 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900">
+            <span className="text-[10px] text-red-600 dark:text-red-400 font-bold uppercase block">Critical</span>
+            <span className="text-xl font-black font-mono text-red-600 dark:text-red-400 block mt-0.5">{criticalCount}</span>
+            <span className="text-[9px] text-red-700 dark:text-red-300 font-bold">Action Needed</span>
           </div>
 
-          <div className="p-3 bg-red-50/70 rounded-xl border border-red-200">
-            <span className="text-[10px] text-red-500 font-bold uppercase block">Elevated Risk</span>
-            <span className="text-xl font-black font-mono text-red-500 block mt-0.5">{warningCount}</span>
-            <span className="text-[9px] text-red-600">High Watch</span>
+          <div className="p-3 bg-red-50/70 dark:bg-red-950/30 rounded-xl border border-red-200 dark:border-red-900/60">
+            <span className="text-[10px] text-red-500 dark:text-red-400 font-bold uppercase block">Elevated Risk</span>
+            <span className="text-xl font-black font-mono text-red-500 dark:text-red-400 block mt-0.5">{warningCount}</span>
+            <span className="text-[9px] text-red-600 dark:text-red-400">High Watch</span>
           </div>
 
-          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-            <span className="text-[10px] text-amber-700 font-bold uppercase block">Watch</span>
-            <span className="text-xl font-black font-mono text-amber-600 block mt-0.5">{watchCount}</span>
-            <span className="text-[9px] text-amber-800">Monitoring</span>
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900">
+            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold uppercase block">Watch</span>
+            <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400 block mt-0.5">{watchCount}</span>
+            <span className="text-[9px] text-amber-800 dark:text-amber-300">Monitoring</span>
           </div>
 
-          <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-            <span className="text-[10px] text-emerald-700 font-bold uppercase block">Stable</span>
-            <span className="text-xl font-black font-mono text-emerald-600 block mt-0.5">{stableCount}</span>
-            <span className="text-[9px] text-emerald-800">Normal Range</span>
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-900">
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase block">Stable</span>
+            <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 block mt-0.5">{stableCount}</span>
+            <span className="text-[9px] text-emerald-800 dark:text-emerald-300">Normal Range</span>
           </div>
 
           <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-            <span className="text-[10px] text-slate-500 uppercase font-bold block">New Alerts</span>
-            <span className="text-xl font-black font-mono text-red-600 block mt-0.5">{activeAlerts.length}</span>
-            <span className="text-[9px] text-slate-500">Unresolved</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold block">New Alerts</span>
+            <span className="text-xl font-black font-mono text-red-600 dark:text-red-400 block mt-0.5">{activeAlerts.length}</span>
+            <span className="text-[9px] text-slate-500 dark:text-slate-400">Unresolved</span>
           </div>
         </div>
 
