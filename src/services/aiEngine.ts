@@ -91,6 +91,11 @@ export interface GrokChatResponse {
   };
 }
 
+import { pharmacyStore } from './pharmacyStore';
+import { queueStore } from './queueStore';
+import { equipmentStore } from './equipmentStore';
+import { bloodStore } from './bloodStore';
+
 function detectClientIntent(message: string, intent?: string): string {
   if (intent) return intent;
   const msgLower = message.trim().toLowerCase();
@@ -99,6 +104,21 @@ function detectClientIntent(message: string, intent?: string): string {
   }
   if (msgLower.includes("what can you do") || msgLower.includes("what can you help") || msgLower.includes("how can you help") || msgLower.includes("help")) {
     return "capabilities";
+  }
+  if (msgLower.includes("medicine") || msgLower.includes("pharmacy") || msgLower.includes("stock") || msgLower.includes("inventory") || msgLower.includes("paracetamol") || msgLower.includes("ceftriaxone") || msgLower.includes("amoxicillin")) {
+    return "medicine_stock";
+  }
+  if (msgLower.includes("delivery") || msgLower.includes("dispatch") || msgLower.includes("order status") || msgLower.includes("courier")) {
+    return "delivery_status";
+  }
+  if (msgLower.includes("queue") || msgLower.includes("waiting") || msgLower.includes("triage") || msgLower.includes("wait time")) {
+    return "queue_status";
+  }
+  if (msgLower.includes("equipment") || msgLower.includes("sensor") || msgLower.includes("ventilator") || msgLower.includes("battery") || msgLower.includes("cable")) {
+    return "equipment_status";
+  }
+  if (msgLower.includes("blood") || msgLower.includes("donor") || msgLower.includes("prbc") || msgLower.includes("transfusion")) {
+    return "blood_status";
   }
   if (msgLower.includes("explain risk") || msgLower.includes("mortality") || msgLower.includes("why is the risk") || msgLower.includes("shap")) {
     return "risk_explanation";
@@ -123,9 +143,57 @@ function generateClientFallbackResponse(patientId: string, message: string, inte
 
   let text = "";
   if (detected === "greeting") {
-    text = `Hello! I'm NeuroCare AI. I can help you understand Patient #${patientId}'s verified clinical data, risk factors, trends, and missing measurements. What would you like to know?`;
+    text = `Hello! I'm NeuroCare AI. I have live access to verified clinical vitals, XGBoost predictions, pharmacy inventory, delivery tracking, triage queues, and bedside equipment for Patient #${patientId}. How can I assist you?`;
   } else if (detected === "capabilities") {
-    text = `I can help explain Patient #${patientId}'s verified risk prediction, recent physiological changes, vital trends, important lab values, missing data quality, and other clinical information available in NeuroCare.`;
+    text = `I can help you with:\n` +
+      `• **Clinical Predictions:** Explain mortality risk, SHAP drivers, vital trends, and trajectory scores.\n` +
+      `• **Pharmacy & Stock:** Check medicine availability, batch expiry dates, and low-stock alerts.\n` +
+      `• **Delivery Tracking:** Track medicine progress from Pharmacy Review to Bedside Receipt.\n` +
+      `• **Triage Queue:** Review waiting times, emergency prioritization, and reassessment alerts.\n` +
+      `• **Equipment Monitoring:** Report sensor connection integrity, battery levels, and equipment fault alarms.\n` +
+      `• **Blood Donor Finder:** Search compatible donors and review emergency blood requests.`;
+  } else if (detected === "medicine_stock") {
+    const inv = pharmacyStore.getInventory();
+    const lowStock = inv.filter((m) => m.stockStatus === "LOW_STOCK" || m.stockStatus === "OUT_OF_STOCK");
+    const sampleMeds = inv.slice(0, 4).map((m) => `• **${m.name}** (${m.strength}): \`${m.totalAvailableQuantity} units\` [${m.stockStatus}]`).join("\n");
+    text = `**Hospital Formulary & Inventory Status**\n\n` +
+      `Total items cataloged: **${inv.length} medicines**\n` +
+      sampleMeds + "\n\n" +
+      (lowStock.length > 0
+        ? `⚠️ **Stock Alert:** ${lowStock.map((m) => `${m.name} (${m.totalAvailableQuantity} left)`).join(", ")} are at or below minimum safety thresholds.`
+        : `✓ All critical formulary stock levels are within normal bounds.`);
+  } else if (detected === "delivery_status") {
+    const orders = pharmacyStore.getOrders(patientId);
+    if (orders.length === 0) {
+      text = `There are currently no active medicine delivery orders recorded for Patient #${patientId}. You can create a prescription from the Patient Profile.`;
+    } else {
+      const orderLines = orders.map((o) => `• **${o.medicineName}** (${o.id}): Status \`${o.status}\` • ${o.estimatedDeliveryTime}`).join("\n");
+      text = `**Active Medicine Delivery Tracking (Patient #${patientId})**\n\n` + orderLines;
+    }
+  } else if (detected === "queue_status") {
+    const queue = queueStore.getSortedQueue();
+    const emergency = queue.filter((q) => q.triagePriority === "EMERGENCY" && q.status !== "Completed");
+    text = `**Patient Triage & Queue Status**\n\n` +
+      `• Total active queue entries: **${queue.length} patients**\n` +
+      `• Emergency priority (Immediate): **${emergency.length}**\n` +
+      (queue.length > 0
+        ? `• Next in consultation: **${queue[0].patientName}** (${queue[0].department}, Waiting: ${queue[0].elapsedWaitingMinutes} mins)`
+        : "");
+  } else if (detected === "equipment_status") {
+    const devices = equipmentStore.getDevicesByPatient(patientId);
+    if (devices.length === 0) {
+      text = `Bedside telemetry equipment for Patient #${patientId} is reporting normal continuous connection.`;
+    } else {
+      const devLines = devices.map((d) => `• **${d.deviceName}**: \`${d.overallStatus}\` • Sensor: ${d.connectionState} • Battery: ${d.batteryPercentage}% (${d.powerSource})`).join("\n");
+      text = `**Bedside Telemetry & Equipment Health (Patient #${patientId})**\n\n` + devLines;
+    }
+  } else if (detected === "blood_status") {
+    const reqs = bloodStore.getRequests();
+    text = `**Blood Bank & Emergency Donor Status**\n\n` +
+      `• Total active requests: **${reqs.length}**\n` +
+      (reqs.length > 0
+        ? `• Latest request: **${reqs[0].bloodGroup} ${reqs[0].component}** (${reqs[0].quantityUnits} units, Status: ${reqs[0].requestStatus})`
+        : `• No pending blood transfusion emergencies.`);
   } else if (detected === "risk_explanation") {
     text = `**NeuroCare AI — Risk Explanation (Patient #${patientId})**\n\n` +
       `**Model Prediction:**\n` +
@@ -159,7 +227,7 @@ function generateClientFallbackResponse(patientId: string, message: string, inte
       `• **Current Vitals:** HR \`92 bpm\`, BP \`91/65 mmHg\`, SpO2 \`98%\`, GCS \`12/15\`\n` +
       `• **Mortality Risk:** \`28.1%\` (ELEVATED) | **Early Warning:** \`WATCH\``;
   } else {
-    text = `Sure! I'm ready to assist with Patient #${patientId}. What would you like to explore: patient summary, risk prediction, recent changes, vital trends, or missing data?`;
+    text = `Sure! I'm ready to assist with Patient #${patientId}. What would you like to explore: patient summary, risk prediction, recent changes, vital trends, medicine inventory, delivery tracking, or equipment telemetry?`;
   }
 
   return {

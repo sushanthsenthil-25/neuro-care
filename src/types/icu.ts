@@ -221,3 +221,260 @@ export interface HistoricalTeamMember {
   action?: string;
   timestamp?: string;
 }
+
+// ----------------------------------------------------
+// 1. MEDICINE INVENTORY & PHARMACY MANAGEMENT TYPES
+// ----------------------------------------------------
+export interface MedicineBatch {
+  batchNumber: string;
+  quantity: number;
+  initialQuantity: number;
+  expiryDate: string; // YYYY-MM-DD
+  receivedDate: string;
+  isExpired?: boolean;
+  isExpiringSoon?: boolean; // Within 30 days
+}
+
+export interface StockMovement {
+  id: string;
+  medicineId: string;
+  medicineName: string;
+  batchNumber: string;
+  type: 'RESTOCK' | 'DISPENSED' | 'ADJUSTMENT' | 'RETURNED' | 'DISCARDED';
+  quantity: number; // positive or negative
+  timestamp: string;
+  performedBy: string;
+  patientId?: string;
+  orderId?: string;
+  notes?: string;
+}
+
+export interface MedicineItem {
+  id: string;
+  name: string;
+  genericName: string;
+  strength: string; // e.g. "500 mg", "1 g", "40 mg"
+  dosageForm: 'Tablet' | 'Capsule' | 'IV Infusion' | 'IV Injection' | 'Oral Solution' | 'Sachet' | 'Vial' | 'Ampoule';
+  category: 'Antibiotic' | 'Analgesic' | 'Antihistamine' | 'Electrolyte/Fluid' | 'Cardiovascular' | 'Gastrointestinal' | 'Diuretic' | 'Respiratory';
+  minimumStockThreshold: number;
+  unitPrice: number; // in currency, e.g., $ or ₹
+  supplier: {
+    name: string;
+    contact: string;
+    leadTimeDays: number;
+  };
+  batches: MedicineBatch[];
+  totalAvailableQuantity: number;
+  stockStatus: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'EXPIRING_SOON';
+  isSyntheticDemo: boolean;
+  notes?: string;
+}
+
+// ----------------------------------------------------
+// 2. PRESCRIPTION & PHARMACY ORDER TRACKING TYPES
+// ----------------------------------------------------
+export type DeliveryStatus =
+  | 'Pending'
+  | 'Pharmacy Review'
+  | 'Preparing'
+  | 'Ready'
+  | 'Out for Delivery'
+  | 'Delivered'
+  | 'Delayed'
+  | 'Cancelled';
+
+export interface DeliveryTimelineStep {
+  step: DeliveryStatus;
+  label: string;
+  timestamp?: string;
+  completed: boolean;
+  actor?: string;
+  note?: string;
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  patientName: string;
+  room: string;
+  bedNumber: string;
+  medicineId: string;
+  medicineName: string;
+  genericName: string;
+  strength: string;
+  dose: string;
+  route: 'IV' | 'Oral' | 'SC' | 'IM' | 'Inhalation' | 'Topical';
+  frequency: 'STAT' | 'Q4H' | 'Q6H' | 'Q8H' | 'Q12H' | 'OD' | 'BD' | 'TDS' | 'PRN';
+  scheduledTime: string;
+  quantity: number;
+  prescribedBy: string;
+  prescribedAt: string;
+  urgency: 'STAT' | 'Urgent' | 'Routine';
+  instructions?: string;
+  status: 'Active' | 'Dispensed' | 'Discontinued' | 'Completed';
+  associatedOrderId?: string;
+}
+
+export interface PharmacyOrder {
+  id: string; // e.g. "RX-ORD-101"
+  prescriptionId: string;
+  patientId: string;
+  patientName: string;
+  room: string;
+  bedNumber: string;
+  medicineId: string;
+  medicineName: string;
+  strength: string;
+  quantity: number;
+  priority: 'STAT' | 'Urgent' | 'Routine';
+  orderedAt: string;
+  status: DeliveryStatus;
+  allocatedBatchNumber?: string;
+  reviewedBy?: string;
+  preparedBy?: string;
+  dispatchedBy?: string;
+  deliveredBy?: string;
+  lastUpdated: string;
+  estimatedDeliveryTime?: string;
+  timeline: DeliveryTimelineStep[];
+  unitPrice: number;
+  totalCost: number;
+  billedToPatient: boolean;
+  exceptionReason?: string;
+}
+
+export interface PatientBillingItem {
+  id: string;
+  patientId: string;
+  description: string;
+  category: 'Pharmacy' | 'Bed' | 'Laboratory' | 'Nursing' | 'Equipment';
+  unitPrice: number;
+  quantity: number;
+  totalAmount: number;
+  timestamp: string;
+  orderId?: string;
+  isCorrected?: boolean;
+  correctedBy?: string;
+  correctionReason?: string;
+}
+
+// ----------------------------------------------------
+// 3. PATIENT QUEUE & TRIAGE TYPES
+// ----------------------------------------------------
+export type TriagePriority = 'EMERGENCY' | 'URGENT' | 'ROUTINE';
+export type QueueStatus = 'Waiting' | 'Triage' | 'In-Consult' | 'Admitted' | 'Completed';
+
+export interface PatientQueueEntry {
+  id: string; // Visit ID or Token
+  patientId?: string;
+  patientName: string;
+  age: number;
+  gender: string;
+  arrivalTime: string; // ISO string
+  arrivalTimestampMs: number;
+  department: 'ICU Triage' | 'Emergency' | 'Neuro-Trauma' | 'Step-down' | 'General';
+  triagePriority: TriagePriority;
+  priorityScore: number; // 1 (Emergency) -> 2 (Urgent) -> 3 (Routine)
+  chiefComplaint: string;
+  assignedClinician: string;
+  status: QueueStatus;
+  elapsedWaitingMinutes: number;
+  estimatedWaitMinutes?: number;
+  reassessmentRequired: boolean;
+  lastReassessmentTime?: string;
+}
+
+// ----------------------------------------------------
+// 4. BLOOD DONOR FINDER TYPES
+// ----------------------------------------------------
+export type BloodGroup = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+export type BloodComponent = 'PRBC' | 'Platelets' | 'FFP' | 'Whole Blood' | 'Cryoprecipitate';
+export type BloodRequestUrgency = 'CRITICAL_STAT' | 'URGENT' | 'ROUTINE';
+
+export interface BloodDonorRecord {
+  id: string;
+  name: string;
+  bloodGroup: BloodGroup;
+  distanceKm: number;
+  neighborhood: string;
+  consentStatus: 'Active Registered Donor' | 'On-Call ICU Donor' | 'Rare Group Volunteer';
+  availabilityStatus: 'Available' | 'Pending Response' | 'Accepted' | 'Declined' | 'Unavailable';
+  lastDonationDate: string;
+  lifetimeDonations: number;
+  isSyntheticDemo: boolean;
+  notified: boolean;
+  notificationTime?: string;
+}
+
+export interface BloodRequest {
+  id: string;
+  patientId: string;
+  patientName: string;
+  room: string;
+  bloodGroup: BloodGroup;
+  component: BloodComponent;
+  quantityUnits: number;
+  urgency: BloodRequestUrgency;
+  requiredByTime: string;
+  createdAt: string;
+  hospitalLocation: string;
+  requestStatus: 'Searching Donors' | 'Staff Approved' | 'Donors Notified' | 'Units Reserved' | 'Fulfilled' | 'Cancelled';
+  searchRadiusKm: 5 | 10 | 15 | 25;
+  staffApproved: boolean;
+  approvedBy?: string;
+  matchedDonors: BloodDonorRecord[];
+  notes?: string;
+}
+
+// ----------------------------------------------------
+// 5. ICU EQUIPMENT & SENSOR MONITORING TYPES
+// ----------------------------------------------------
+export type DeviceHealthStatus = 'NORMAL' | 'WARNING' | 'CRITICAL' | 'OFFLINE';
+
+export interface BedsideEquipmentDevice {
+  deviceId: string;
+  deviceName: string;
+  deviceType: 'Patient Monitor' | 'Mechanical Ventilator' | 'Infusion Pump' | 'Dialysis / CRRT' | 'Defibrillator';
+  modelNumber: string;
+  room: string;
+  bedNumber: string;
+  patientId: string;
+  connectionState: 'Connected' | 'Loose / Intermittent' | 'Disconnected' | 'Unknown';
+  cableIntegrity: 'Secure' | 'Strain Warning' | 'Signal Noise' | 'Simulated Teardown';
+  powerSource: 'Mains AC' | 'Internal Battery' | 'UPS Backup';
+  batteryPercentage: number;
+  isCharging: boolean;
+  voltageReading: number; // e.g. 230V or 120V
+  voltageStability: 'Stable' | 'Fluctuating' | 'Surge Alert';
+  overallStatus: DeviceHealthStatus;
+  activeFaults: string[];
+  lastTelemetryPing: string;
+  isSimulatedTelemetry: boolean;
+}
+
+// ----------------------------------------------------
+// 6. IN-APP NOTIFICATION TYPES
+// ----------------------------------------------------
+export type NotificationCategory =
+  | 'CLINICAL_ALERT'
+  | 'EQUIPMENT_FAULT'
+  | 'MEDICINE_EXPIRY'
+  | 'LOW_STOCK'
+  | 'DELIVERY_UPDATE'
+  | 'QUEUE_ALERT'
+  | 'BLOOD_REQUEST';
+
+export interface AppNotification {
+  id: string;
+  category: NotificationCategory;
+  severity: 'NORMAL' | 'WARNING' | 'CRITICAL';
+  title: string;
+  message: string;
+  timestamp: string;
+  patientId?: string;
+  room?: string;
+  linkType?: 'patient' | 'pharmacy' | 'queue' | 'blood' | 'equipment';
+  read: boolean;
+  acknowledged: boolean;
+}
+

@@ -214,6 +214,36 @@ export const RobotAIRobotAssistant: React.FC<RobotAIRobotAssistantProps> = ({
               Explain Risk
             </button>
             <button
+              onClick={() => handleQuickAction("Medicine Stock", "medicine_stock")}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-purple-300"
+            >
+              Medicine Stock
+            </button>
+            <button
+              onClick={() => handleQuickAction("Delivery Status", "delivery_status")}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-blue-300"
+            >
+              Delivery Status
+            </button>
+            <button
+              onClick={() => handleQuickAction("Triage Queue", "queue_status")}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-amber-300"
+            >
+              Triage Queue
+            </button>
+            <button
+              onClick={() => handleQuickAction("Equipment Check", "equipment_status")}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-emerald-300"
+            >
+              Equipment Telemetry
+            </button>
+            <button
+              onClick={() => handleQuickAction("Blood Bank", "blood_status")}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors text-red-300"
+            >
+              Blood Bank
+            </button>
+            <button
               onClick={() => handleQuickAction("Recent Changes", "recent_changes")}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-mono rounded-lg border border-slate-700 whitespace-nowrap transition-colors"
             >

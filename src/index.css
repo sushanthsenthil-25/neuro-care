@@ -6,6 +6,12 @@
     color: #0f172a;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.dark body {
+    background-color: #090d16;
+    color: #f1f5f9;
   }
 }
 
@@ -13,8 +19,15 @@
 .clinical-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+html.dark .clinical-card {
+  background: #111827;
+  border-color: #1f2937;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 }
 
 .clinical-badge-green {
@@ -23,16 +36,34 @@
   border: 1px solid #bbf7d0;
 }
 
+html.dark .clinical-badge-green {
+  background-color: #052e16;
+  color: #4ade80;
+  border-color: #14532d;
+}
+
 .clinical-badge-amber {
   background-color: #fffbeb;
   color: #b45309;
   border: 1px solid #fde68a;
 }
 
+html.dark .clinical-badge-amber {
+  background-color: #451a03;
+  color: #fbbf24;
+  border-color: #78350f;
+}
+
 .clinical-badge-red {
   background-color: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+
+html.dark .clinical-badge-red {
+  background-color: #450a0a;
+  color: #f87171;
+  border-color: #7f1d1d;
 }
 
 /* Floor map pulse indicators */
@@ -51,4 +82,26 @@
   background-image: 
     linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
+}
+
+html.dark .ecg-grid {
+  background-image: 
+    linear-gradient(to right, rgba(31, 41, 55, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(31, 41, 55, 0.5) 1px, transparent 1px);
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
 }

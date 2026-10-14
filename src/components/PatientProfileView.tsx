@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Patient, Alert, MedicalReport, Medication, IntakeOutputRecord, ClinicalNote, TimelineEvent, ShiftSummary } from '../types/icu';
+import type { Patient, Alert, MedicalReport, Medication, IntakeOutputRecord, ClinicalNote, TimelineEvent, ShiftSummary, Prescription, PharmacyOrder } from '../types/icu';
 import { PatientTimeline } from './PatientTimeline';
 import { AnimatedNumber } from './AnimatedNumber';
 import { ClinicalSkeleton } from './ClinicalSkeleton';
@@ -20,13 +20,24 @@ import {
   Droplet,
   PieChart,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Pill,
+  Truck,
+  Plus,
+  Receipt,
+  Cpu
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { fetchPatientRiskScore, fetchEarlyWarningData, fetchPredictionHistory, fetchPatientAlerts, acknowledgeAlertBackend } from '../services/aiEngine';
 import type { RiskPredictionResponse, EarlyWarningResponse, PredictionSnapshot, ClinicalAlert } from '../services/aiEngine';
 import { RoomVisitingRecord } from './RoomVisitingRecord';
+import { PrescriptionFormModal } from './PrescriptionFormModal';
+import { PharmacyOrdersModal } from './PharmacyOrdersModal';
+import { BloodDonorModal } from './BloodDonorModal';
+import { PatientBillingCard } from './PatientBillingCard';
+import { EquipmentMonitoringCard } from './EquipmentMonitoringCard';
+import { pharmacyStore } from '../services/pharmacyStore';
 
 interface PatientProfileViewProps {
   patient: Patient;
@@ -60,9 +71,26 @@ export const PatientProfileView: React.FC<PatientProfileViewProps> = ({
   const [predHistory, setPredHistory] = useState<PredictionSnapshot[]>([]);
   const [alertsList, setAlertsList] = useState<ClinicalAlert[]>([]);
 
+  // New Clinical Modals State
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [isPharmacyOrdersModalOpen, setIsPharmacyOrdersModalOpen] = useState(false);
+  const [isBloodModalOpen, setIsBloodModalOpen] = useState(false);
+  const [patientOrders, setPatientOrders] = useState<PharmacyOrder[]>([]);
+  const [patientPrescriptions, setPatientPrescriptions] = useState<Prescription[]>([]);
+
   useEffect(() => {
     setIsLoading(true);
     let isMounted = true;
+
+    setPatientOrders(pharmacyStore.getOrders(patient.id));
+    setPatientPrescriptions(pharmacyStore.getPrescriptions(patient.id));
+
+    const unsubPharm = pharmacyStore.subscribe(() => {
+      if (isMounted) {
+        setPatientOrders(pharmacyStore.getOrders(patient.id));
+        setPatientPrescriptions(pharmacyStore.getPrescriptions(patient.id));
+      }
+    });
 
     Promise.all([
       fetchPatientRiskScore(patient.id),
@@ -82,6 +110,7 @@ export const PatientProfileView: React.FC<PatientProfileViewProps> = ({
 
     return () => {
       isMounted = false;
+      unsubPharm();
     };
   }, [patient.id]);
 
@@ -152,12 +181,33 @@ export const PatientProfileView: React.FC<PatientProfileViewProps> = ({
           <ArrowLeft className="w-4 h-4" /> Return to 3D ICU Floor Overview
         </button>
 
-        <div className="flex items-center gap-3 text-xs">
-          <span className="font-mono text-slate-500 bg-slate-100 px-2.5 py-1 rounded border border-slate-200">
-            Route: /patient/{patient.id}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+          <button
+            onClick={() => setIsPrescriptionModalOpen(true)}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs"
+          >
+            <Pill className="w-3.5 h-3.5" /> Prescribe Medication
+          </button>
+
+          <button
+            onClick={() => setIsPharmacyOrdersModalOpen(true)}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-lg transition-colors flex items-center gap-1.5 border border-slate-300 dark:border-slate-700"
+          >
+            <Truck className="w-3.5 h-3.5 text-blue-600" /> Pharmacy Orders ({patientOrders.length})
+          </button>
+
+          <button
+            onClick={() => setIsBloodModalOpen(true)}
+            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 font-bold rounded-lg transition-colors flex items-center gap-1.5 border border-red-200 dark:border-red-900"
+          >
+            <Droplet className="w-3.5 h-3.5 fill-current" /> Request Blood
+          </button>
+
+          <span className="font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700 hidden sm:inline-block">
+            /patient/{patient.id}
           </span>
           <span className="px-2.5 py-1 bg-slate-900 text-white font-mono rounded font-bold">
-            NFC Tag: {patient.nfcTagId}
+            NFC: {patient.nfcTagId}
           </span>
         </div>
       </div>
@@ -887,12 +937,176 @@ export const PatientProfileView: React.FC<PatientProfileViewProps> = ({
         </div>
       </div>
 
+      {/* 9. SECTION: PRESCRIPTIONS & PHARMACY DELIVERY TRACKING */}
+      <div id="section-prescriptions" className="space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+          <div className="flex items-center gap-2">
+            <Pill className="w-5 h-5 text-red-600" />
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+              9. Patient Prescriptions & Connected Pharmacy Dispense Tracking
+            </h3>
+          </div>
+          <button
+            onClick={() => setIsPrescriptionModalOpen(true)}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-xs font-mono"
+          >
+            <Plus className="w-3.5 h-3.5" /> Prescribe Medication
+          </button>
+        </div>
+
+        <div className="clinical-card p-5 bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs space-y-4 font-mono text-xs">
+          {patientPrescriptions.length === 0 ? (
+            <div className="p-8 text-center text-slate-400">
+              No prescriptions recorded yet. Click &quot;Prescribe Medication&quot; above to create a pharmacy order.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {patientPrescriptions.map((rx) => {
+                const linkedOrder = patientOrders.find((o) => o.id === rx.associatedOrderId);
+                return (
+                  <div
+                    key={rx.id}
+                    className="p-4 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 dark:text-slate-100 text-sm">
+                            {rx.medicineName} ({rx.genericName})
+                          </span>
+                          <span className="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold px-2 py-0.5 rounded">
+                            {rx.dose} • {rx.route} • {rx.frequency}
+                          </span>
+                          <span
+                            className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
+                              rx.urgency === 'STAT' ? 'bg-red-600 text-white' : 'bg-amber-500 text-white'
+                            }`}
+                          >
+                            {rx.urgency}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                          Scheduled: {rx.scheduledTime} • Qty: {rx.quantity} • Prescribed by: {rx.prescribedBy} ({rx.prescribedAt})
+                        </p>
+                        {rx.instructions && (
+                          <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 font-sans italic">
+                            &quot;{rx.instructions}&quot;
+                          </p>
+                        )}
+                      </div>
+
+                      {linkedOrder && (
+                        <div className="text-right">
+                          <span className="text-[10px] text-slate-400 block">Pharmacy Delivery Status</span>
+                          <span
+                            className={`font-black text-xs px-2 py-0.5 rounded-full inline-block ${
+                              linkedOrder.status === 'Delivered'
+                                ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                                : linkedOrder.status === 'Out for Delivery'
+                                ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 animate-pulse'
+                                : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                            }`}
+                          >
+                            {linkedOrder.status}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                            {linkedOrder.estimatedDeliveryTime}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Stepper Progress Bar */}
+                    {linkedOrder && (
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                        <div className="flex items-center justify-between text-[10px] text-slate-500">
+                          <span>Order Ref: {linkedOrder.id} • Batch: {linkedOrder.allocatedBatchNumber || 'Pending Allocation'}</span>
+                          <span>Last updated: {linkedOrder.lastUpdated}</span>
+                        </div>
+
+                        <div className="grid grid-cols-6 gap-1 text-[9px] text-center font-bold">
+                          {linkedOrder.timeline.map((step) => (
+                            <div
+                              key={step.step}
+                              className={`p-1.5 rounded border ${
+                                step.completed
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                                  : linkedOrder.status === step.step
+                                  ? 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300'
+                                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 opacity-60'
+                              }`}
+                            >
+                              <span className="block truncate">{step.step}</span>
+                              <span className="text-[8px] font-normal block text-slate-400">{step.timestamp || '—'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 10. SECTION: BEDSIDE MEDICAL EQUIPMENT & SENSORS */}
+      <div id="section-equipment" className="space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+          <div className="flex items-center gap-2">
+            <Cpu className="w-5 h-5 text-blue-600" />
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+              10. Bedside Medical Equipment & Telemetry Monitoring
+            </h3>
+          </div>
+          <span className="text-xs font-mono text-slate-500">Continuous hardware telemetry</span>
+        </div>
+
+        <EquipmentMonitoringCard patientId={patient.id} roomName={patient.room} />
+      </div>
+
+      {/* 11. SECTION: HOSPITAL PATIENT BILLING LEDGER */}
+      <div id="section-billing" className="space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+          <div className="flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+              11. Hospital Patient Billing & Itemized Medicine Charges
+            </h3>
+          </div>
+          <span className="text-xs font-mono text-slate-500">Automated ledger integration</span>
+        </div>
+
+        <PatientBillingCard patientId={patient.id} patientName={patient.name} />
+      </div>
+
       {/* FEATURE 1: PATIENT ROOM VISITING RECORD */}
       <RoomVisitingRecord
         patientId={patient.id}
         roomId={patient.room}
         userRole={currentUserRole}
         userName={currentUserName}
+      />
+
+      {/* MODALS */}
+      <PrescriptionFormModal
+        isOpen={isPrescriptionModalOpen}
+        onClose={() => setIsPrescriptionModalOpen(false)}
+        patient={patient}
+        currentDoctorName={currentUserName}
+      />
+
+      <PharmacyOrdersModal
+        isOpen={isPharmacyOrdersModalOpen}
+        onClose={() => setIsPharmacyOrdersModalOpen(false)}
+        selectedPatientId={patient.id}
+      />
+
+      <BloodDonorModal
+        isOpen={isBloodModalOpen}
+        onClose={() => setIsBloodModalOpen(false)}
+        patient={patient}
       />
     </motion.div>
   );

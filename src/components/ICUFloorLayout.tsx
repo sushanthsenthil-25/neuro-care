@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Patient } from '../types/icu';
 import {
   Search,
@@ -10,6 +10,7 @@ import {
   Activity
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { equipmentStore } from '../services/equipmentStore';
 
 interface ICUFloorLayoutProps {
   patients: Patient[];
@@ -26,6 +27,11 @@ export const ICUFloorLayout: React.FC<ICUFloorLayoutProps> = ({
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeWing, setActiveWing] = useState<'wingA' | 'wingB'>('wingA');
+  const [, setEquipmentTick] = useState(0);
+
+  useEffect(() => {
+    return equipmentStore.subscribe(() => setEquipmentTick((t) => t + 1));
+  }, []);
 
   const handleZoomIn = () => setZoomLevel((prev) => Math.min(prev + 0.15, 1.35));
   const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.15, 0.75));
@@ -108,6 +114,7 @@ export const ICUFloorLayout: React.FC<ICUFloorLayoutProps> = ({
     const isSelected = patient && patient.id === selectedPatientId;
     const isMatched = isSearchMatch(roomLabel, patient);
     const style = patient ? getRoomStatusStyle(patient.status) : getRoomStatusStyle();
+    const eqStatus = equipmentStore.getRoomEquipmentStatus(roomLabel);
 
     return (
       <motion.div
@@ -147,8 +154,8 @@ export const ICUFloorLayout: React.FC<ICUFloorLayoutProps> = ({
           </div>
         )}
 
-        {/* Room Header: Room Number + Status */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+        {/* Room Header: Room Number + Equipment Status + Clinical Status */}
+        <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 gap-1">
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-black text-slate-900 font-sans tracking-tight">
               {roomLabel}
@@ -159,11 +166,28 @@ export const ICUFloorLayout: React.FC<ICUFloorLayoutProps> = ({
               </span>
             )}
           </div>
-          {patient && (
-            <span className={`text-[8.5px] font-mono font-extrabold px-2 py-0.5 rounded uppercase shadow-xs ${style.badgeBg}`}>
-              {style.statusText}
-            </span>
-          )}
+          <div className="flex items-center gap-1">
+            {/* Bedside Equipment Telemetry Badge */}
+            {eqStatus === 'CRITICAL' ? (
+              <span className="text-[7.5px] font-mono font-bold bg-red-100 text-red-700 border border-red-300 px-1 py-0.2 rounded flex items-center gap-0.5" title="Bedside telemetry: Critical equipment fault">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping" /> EQ FAULT
+              </span>
+            ) : eqStatus === 'WARNING' ? (
+              <span className="text-[7.5px] font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.2 rounded flex items-center gap-0.5" title="Bedside telemetry: Warning (Battery / Cable)">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> EQ WARN
+              </span>
+            ) : (
+              <span className="text-[7.5px] font-mono text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200 flex items-center gap-0.5" title="Bedside monitors & pumps online">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> EQ OK
+              </span>
+            )}
+
+            {patient && (
+              <span className={`text-[8.5px] font-mono font-extrabold px-2 py-0.5 rounded uppercase shadow-xs ${style.badgeBg}`}>
+                {style.statusText}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Room Body: Patient Identity & Vitals */}
